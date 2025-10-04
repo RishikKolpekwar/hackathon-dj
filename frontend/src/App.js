@@ -7,7 +7,6 @@ import {
   Controls,
   useNodesState,
   useEdgesState,
-  addEdge,
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/base.css';
@@ -67,6 +66,7 @@ const edgeTypes = {
 const defaultEdgeOptions = {
   type: 'turbo',
   markerEnd: 'edge-circle',
+  updatable: false,
 };
 
 const initialNodes = [];
@@ -79,11 +79,6 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
   const nodeTypes = {
     turbo: TurboNode,
   };
-
-  const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges],
-  );
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
@@ -176,14 +171,32 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
   }, [setPreviewEdge]);
 
   const handleConnectionCreate = useCallback((sourceNode, targetNode) => {
+    if (!sourceNode || !targetNode) return;
+    if (sourceNode.id === targetNode.id) return;
+
+    const sourceHasOutgoing = edges.some((e) => e.source === sourceNode.id);
+    const targetHasIncoming = edges.some((e) => e.target === targetNode.id);
+    const edgeExists = edges.some((e) => e.source === sourceNode.id && e.target === targetNode.id);
+
+    if (sourceHasOutgoing || targetHasIncoming || edgeExists) {
+      setPreviewEdge(null);
+      return;
+    }
+
     const newEdge = {
       id: `edge-${sourceNode.id}-${targetNode.id}-${Date.now()}`,
       source: sourceNode.id,
       target: targetNode.id,
-      type: 'turbo'
+      type: 'turbo',
+      updatable: false
     };
 
     setEdges((eds) => [...eds, newEdge]);
+    setPreviewEdge(null);
+  }, [edges, setEdges, setPreviewEdge]);
+
+  const handleRemoveConnection = useCallback((edgeId) => {
+    setEdges((eds) => eds.filter((e) => e.id !== edgeId));
     setPreviewEdge(null);
   }, [setEdges, setPreviewEdge]);
 
@@ -207,7 +220,6 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
         edges={allEdges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
         onDrop={onDrop}
         onDragOver={onDragOver}
         onNodeClick={handleNodeClick}
@@ -215,6 +227,9 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
+        nodesConnectable={false}
+        edgesUpdatable={false}
+        connectOnClick={false}
         fitView
         attributionPosition="bottom-left"
       >
@@ -247,9 +262,11 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
           position={popupState.position}
           currentNode={popupState.currentNode}
           allNodes={nodes}
+          edges={edges}
           onClose={handleClosePopup}
           onConnectionPreview={handleConnectionPreview}
           onConnectionCreate={handleConnectionCreate}
+          onRemoveConnection={handleRemoveConnection}
           previewTarget={previewEdge?.target}
         />
       )}
