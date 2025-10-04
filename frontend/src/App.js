@@ -73,7 +73,7 @@ const initialNodes = [];
 const initialEdges = [];
 
 // Inner component that uses React Flow hooks
-function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, popupState, setPopupState, previewEdge, setPreviewEdge, setCurrentSong, currentSong }) {
+function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, popupState, setPopupState, previewEdge, setPreviewEdge, setCurrentSong, currentSong, transitioningEdgeId }) {
   const { screenToFlowPosition } = useReactFlow();
 
   const handleDeleteNode = useCallback((nodeId) => {
@@ -346,6 +346,7 @@ function App() {
               setPreviewEdge={setPreviewEdge}
               setCurrentSong={setCurrentSong}
               currentSong={currentSong}
+              transitioningEdgeId={transitioningEdgeId}
             />
           </ReactFlowProvider>
         </RightPanel>
