@@ -9,13 +9,6 @@ export default memo(({ id, data, selected, onDelete, onPlay }) => {
         }
     };
 
-    const handlePlayClick = (e) => {
-        e.stopPropagation(); // Prevent node click event
-        if (onPlay) {
-            onPlay(data.song);
-        }
-    };
-
     return (
         <>
             <div className={`wrapper gradient ${selected ? 'selected' : ''}`}>
@@ -41,40 +34,6 @@ export default memo(({ id, data, selected, onDelete, onPlay }) => {
                             </div>
                         </div>
                     </div>
-
-                    {/* Play button */}
-                    <button
-                        onClick={handlePlayClick}
-                        style={{
-                            position: 'absolute',
-                            top: '6px',
-                            left: '6px',
-                            background: 'rgba(168, 83, 186, 0.8)',
-                            border: 'none',
-                            color: '#fff',
-                            fontSize: '10px',
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '50%',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.2s ease',
-                            zIndex: 10,
-                            paddingLeft: '2px' // Adjust for play icon visual centering
-                        }}
-                        onMouseEnter={(e) => {
-                            e.target.style.background = 'rgba(168, 83, 186, 0.9)';
-                            e.target.style.transform = 'scale(1.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.target.style.background = 'rgba(168, 83, 186, 0.8)';
-                            e.target.style.transform = 'scale(1)';
-                        }}
-                    >
-                        ▶
-                    </button>
 
                     {/* Delete button */}
                     <button
