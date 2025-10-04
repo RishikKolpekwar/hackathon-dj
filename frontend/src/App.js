@@ -223,7 +223,7 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
         defaultViewport={{ x: 0, y: 0, zoom: 1.2 }}
         minZoom={0.8}
         maxZoom={2}
-        attributionPosition="bottom-left"
+        proOptions={{ hideAttribution: true }}
       >
         <Controls
           showInteractive={false}
@@ -311,7 +311,7 @@ function App() {
 
     // Start from first start node
     buildQueue(startNodes[0].id);
-    
+
     return queue;
   }, [nodes, edges]);
 
@@ -351,9 +351,9 @@ function App() {
           </ReactFlowProvider>
         </RightPanel>
       </AppContainer>
-      <MusicPlayer 
-        songQueue={songQueue} 
-        currentSong={currentSong} 
+      <MusicPlayer
+        songQueue={songQueue}
+        currentSong={currentSong}
         setCurrentSong={setCurrentSong}
         nodes={nodes}
         edges={edges}
