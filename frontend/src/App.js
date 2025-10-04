@@ -301,7 +301,7 @@ function App() {
       if (node) {
         // Find the edge that connects this node to the next
         const nextEdge = edges.find(e => e.source === nodeId);
-        
+
         queue.push({
           song: node.data.song,
           edgeToNext: nextEdge ? nextEdge.id : null,

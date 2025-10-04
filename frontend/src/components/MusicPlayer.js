@@ -93,7 +93,7 @@ const Timeline = styled.div`
 const SongClip = styled.div`
   position: relative;
   height: 100%;
-  background: ${props => props.isPlaying 
+  background: ${props => props.isPlaying
     ? 'linear-gradient(135deg, rgba(233, 42, 103, 0.3), rgba(168, 83, 186, 0.3))'
     : 'rgba(255, 255, 255, 0.05)'};
   border-right: 1px solid rgba(255, 255, 255, 0.1);
@@ -108,9 +108,9 @@ const SongClip = styled.div`
   min-width: 250px;
   
   &:hover {
-    background: ${props => props.isPlaying 
-      ? 'linear-gradient(135deg, rgba(233, 42, 103, 0.4), rgba(168, 83, 186, 0.4))'
-      : 'rgba(255, 255, 255, 0.1)'};
+    background: ${props => props.isPlaying
+    ? 'linear-gradient(135deg, rgba(233, 42, 103, 0.4), rgba(168, 83, 186, 0.4))'
+    : 'rgba(255, 255, 255, 0.1)'};
   }
 `;
 
