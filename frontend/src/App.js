@@ -115,34 +115,16 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
   );
 
   const handleNodeClick = useCallback((event, node) => {
-    // Get the node element to calculate screen position
-    const nodeElement = document.querySelector(`[data-id="${node.id}"]`);
-    if (!nodeElement) return;
-
-    const nodeRect = nodeElement.getBoundingClientRect();
-    const reactFlowElement = document.querySelector('.react-flow');
-    if (!reactFlowElement) return;
-
-    const reactFlowRect = reactFlowElement.getBoundingClientRect();
-
-    // Position popup to the right of the node, accounting for React Flow container offset
-    const popupPosition = {
-      x: nodeRect.right - reactFlowRect.left + 20,
-      y: nodeRect.top - reactFlowRect.top
-    };
-
     setPopupState({
       show: true,
-      position: popupPosition,
-      currentNode: node
+      currentNodeId: node.id
     });
   }, [setPopupState]);
 
   const handleClosePopup = useCallback(() => {
     setPopupState({
       show: false,
-      position: { x: 0, y: 0 },
-      currentNode: null
+      currentNodeId: null
     });
     setPreviewEdge(null);
   }, [setPopupState, setPreviewEdge]);
@@ -254,10 +236,9 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
         </svg>
       </ReactFlow>
 
-      {popupState.show && popupState.currentNode && (
+      {popupState.show && popupState.currentNodeId && (
         <ConnectionPopup
-          position={popupState.position}
-          currentNode={popupState.currentNode}
+          currentNodeId={popupState.currentNodeId}
           allNodes={nodes}
           edges={edges}
           onClose={handleClosePopup}
@@ -275,8 +256,7 @@ function App() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [popupState, setPopupState] = useState({
     show: false,
-    position: { x: 0, y: 0 },
-    currentNode: null
+    currentNodeId: null
   });
   const [previewEdge, setPreviewEdge] = useState(null);
 
