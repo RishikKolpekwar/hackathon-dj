@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState, useMemo } from 'react';
 import styled from 'styled-components';
 import {
@@ -214,10 +213,15 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
         nodesConnectable={false}
         edgesUpdatable={false}
         connectOnClick={false}
-        fitView
+        defaultViewport={{ x: 0, y: 0, zoom: 1.2 }}
+        minZoom={0.8}
+        maxZoom={2}
         attributionPosition="bottom-left"
       >
-        <Controls showInteractive={false} />
+        <Controls 
+          showInteractive={false}
+          fitViewOptions={{ padding: 0.1, includeHiddenNodes: false }}
+        />
         <svg>
           <defs>
             <linearGradient id="edge-gradient">
