@@ -103,7 +103,8 @@ const SongClip = styled.div`
   gap: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 200px;
+  flex: 1;
+  min-width: 250px;
   
   &:hover {
     background: ${props => props.isPlaying 
@@ -200,6 +201,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong }) => {
     const [currentSongIndex, setCurrentSongIndex] = useState(0);
     const audioRef = useRef(null);
     const timelineRef = useRef(null);
+    const clipRefs = useRef([]);
 
     // Initialize audio element
     useEffect(() => {
@@ -255,7 +257,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong }) => {
             // Auto-play when new song is set
             audio.play().catch(err => console.error('Error playing audio:', err));
             setIsPlaying(true);
-            
+
             // Find index in queue
             const index = songQueue.findIndex(s => s.id === currentSong.id);
             if (index !== -1) {
@@ -272,16 +274,16 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong }) => {
 
     const togglePlayPause = () => {
         const audio = audioRef.current;
-        
+
         if (songQueue.length === 0) return;
-        
+
         if (!currentSong && songQueue.length > 0) {
             // Start playing first song in queue
             setCurrentSong(songQueue[0]);
             setCurrentSongIndex(0);
             return;
         }
-        
+
         if (!audio) return;
 
         if (isPlaying) {
@@ -306,13 +308,21 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong }) => {
 
     // Calculate playhead position
     const calculatePlayheadPosition = () => {
-        if (!currentSong || !timelineRef.current) return 0;
+        if (!currentSong || !timelineRef.current || !clipRefs.current[currentSongIndex]) return 0;
         
-        const clipWidth = 200; // min-width of SongClip
-        const currentClipPosition = currentSongIndex * clipWidth;
-        const progressInCurrentClip = duration > 0 ? (currentTime / duration) * clipWidth : 0;
+        // Calculate cumulative width of all clips before current one
+        let cumulativeWidth = 0;
+        for (let i = 0; i < currentSongIndex; i++) {
+            if (clipRefs.current[i]) {
+                cumulativeWidth += clipRefs.current[i].offsetWidth;
+            }
+        }
         
-        return currentClipPosition + progressInCurrentClip;
+        // Add progress within current clip
+        const currentClipWidth = clipRefs.current[currentSongIndex]?.offsetWidth || 250;
+        const progressInCurrentClip = duration > 0 ? (currentTime / duration) * currentClipWidth : 0;
+        
+        return cumulativeWidth + progressInCurrentClip;
     };
 
     return (
@@ -330,7 +340,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong }) => {
                     </div>
                 )}
             </ControlsBar>
-            
+
             <TimelineContainer ref={timelineRef}>
                 {songQueue.length === 0 ? (
                     <NoSongsText>Add songs to the canvas to build your queue</NoSongsText>
@@ -339,11 +349,12 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong }) => {
                         {songQueue.map((song, index) => (
                             <SongClip
                                 key={`${song.id}-${index}`}
+                                ref={(el) => (clipRefs.current[index] = el)}
                                 isPlaying={currentSong?.id === song.id}
                                 onClick={() => handleSongClick(song, index)}
                             >
-                                <AlbumCover 
-                                    src={song.albumCover || '/Ken_Carson_Project_X_cover.jpeg'} 
+                                <AlbumCover
+                                    src={song.albumCover || '/Ken_Carson_Project_X_cover.jpeg'}
                                     alt={song.title}
                                 />
                                 <SongInfo>

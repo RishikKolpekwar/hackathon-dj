@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 
-export default memo(({ id, data, selected, onDelete, onPlay }) => {
+export default memo(({ id, data, selected, onDelete, onPlay, currentSong }) => {
     const handleDeleteClick = (e) => {
         e.stopPropagation(); // Prevent node click event
         if (onDelete) {
@@ -9,9 +9,11 @@ export default memo(({ id, data, selected, onDelete, onPlay }) => {
         }
     };
 
+    const isPlaying = currentSong && currentSong.id === data.song.id;
+
     return (
         <>
-            <div className={`wrapper gradient ${selected ? 'selected' : ''}`}>
+            <div className={`wrapper gradient ${selected ? 'selected' : ''} ${isPlaying ? 'playing' : ''}`}>
                 <div className="inner">
                     <div className="body">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
