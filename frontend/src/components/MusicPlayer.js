@@ -92,9 +92,9 @@ const Timeline = styled.div`
 const SongClip = styled.div`
   position: relative;
   height: 100%;
-  background: ${props => props.isPlaying 
-    ? 'linear-gradient(135deg, rgba(233, 42, 103, 0.3), rgba(168, 83, 186, 0.3))'
-    : 'rgba(255, 255, 255, 0.05)'};
+  background: ${props => props.isPlaying
+        ? 'linear-gradient(135deg, rgba(233, 42, 103, 0.3), rgba(168, 83, 186, 0.3))'
+        : 'rgba(255, 255, 255, 0.05)'};
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   border-left: ${props => props.isPlaying ? '2px solid #e92a67' : 'none'};
   display: flex;
@@ -107,9 +107,9 @@ const SongClip = styled.div`
   min-width: 250px;
   
   &:hover {
-    background: ${props => props.isPlaying 
-      ? 'linear-gradient(135deg, rgba(233, 42, 103, 0.4), rgba(168, 83, 186, 0.4))'
-      : 'rgba(255, 255, 255, 0.1)'};
+    background: ${props => props.isPlaying
+        ? 'linear-gradient(135deg, rgba(233, 42, 103, 0.4), rgba(168, 83, 186, 0.4))'
+        : 'rgba(255, 255, 255, 0.1)'};
   }
 `;
 
@@ -194,7 +194,59 @@ const CurrentTimeDisplay = styled.div`
   text-align: center;
 `;
 
-const MusicPlayer = ({ songQueue, currentSong, setCurrentSong }) => {
+const TransitionBox = styled.div`
+  position: relative;
+  height: 100%;
+  width: 60px;
+  min-width: 60px;
+  background: rgba(0, 0, 0, 0.5);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: not-allowed;
+  
+  &::before {
+    content: '✕';
+    color: #e92a67;
+    font-size: 24px;
+    font-weight: bold;
+    opacity: 0.5;
+  }
+  
+  &.playing {
+    background: rgba(233, 42, 103, 0.2);
+    animation: transitionPulse 1.5s ease-in-out infinite;
+    
+    &::before {
+      opacity: 1;
+      animation: transitionSpin 2s linear infinite;
+    }
+  }
+`;
+
+const transitionStyles = `
+@keyframes transitionPulse {
+  0%, 100% {
+    background: rgba(233, 42, 103, 0.2);
+  }
+  50% {
+    background: rgba(233, 42, 103, 0.4);
+  }
+}
+
+@keyframes transitionSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+`;
+
+const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, setTransitioningEdgeId }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -309,7 +361,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong }) => {
     // Calculate playhead position
     const calculatePlayheadPosition = () => {
         if (!currentSong || !timelineRef.current || !clipRefs.current[currentSongIndex]) return 0;
-        
+
         // Calculate cumulative width of all clips before current one
         let cumulativeWidth = 0;
         for (let i = 0; i < currentSongIndex; i++) {
@@ -317,60 +369,70 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong }) => {
                 cumulativeWidth += clipRefs.current[i].offsetWidth;
             }
         }
-        
+
         // Add progress within current clip
         const currentClipWidth = clipRefs.current[currentSongIndex]?.offsetWidth || 250;
         const progressInCurrentClip = duration > 0 ? (currentTime / duration) * currentClipWidth : 0;
-        
+
         return cumulativeWidth + progressInCurrentClip;
     };
 
     return (
-        <PlayerContainer>
-            <ControlsBar>
-                <PlayButton onClick={togglePlayPause} disabled={songQueue.length === 0}>
-                    {isPlaying ? '⏸' : '▶'}
-                </PlayButton>
-                <CurrentTimeDisplay>
-                    {currentSong ? `${formatTime(currentTime)} / ${formatTime(duration)}` : '--:-- / --:--'}
-                </CurrentTimeDisplay>
-                {currentSong && (
-                    <div style={{ color: '#ffffff', fontSize: '13px', fontWeight: '600' }}>
-                        {currentSong.title} - {currentSong.artist}
-                    </div>
-                )}
-            </ControlsBar>
-
-            <TimelineContainer ref={timelineRef}>
-                {songQueue.length === 0 ? (
-                    <NoSongsText>Add songs to the canvas to build your queue</NoSongsText>
-                ) : (
-                    <Timeline>
-                        {songQueue.map((song, index) => (
-                            <SongClip
-                                key={`${song.id}-${index}`}
-                                ref={(el) => (clipRefs.current[index] = el)}
-                                isPlaying={currentSong?.id === song.id}
-                                onClick={() => handleSongClick(song, index)}
-                            >
-                                <AlbumCover
-                                    src={song.albumCover || '/Ken_Carson_Project_X_cover.jpeg'}
-                                    alt={song.title}
-                                />
-                                <SongInfo>
-                                    <SongTitle isPlaying={currentSong?.id === song.id}>
-                                        {song.title}
-                                    </SongTitle>
-                                    <SongArtist>{song.artist}</SongArtist>
-                                </SongInfo>
-                                <SongDuration>{song.duration}</SongDuration>
-                            </SongClip>
-                        ))}
-                        {currentSong && <Playhead position={calculatePlayheadPosition()} />}
-                    </Timeline>
-                )}
-            </TimelineContainer>
-        </PlayerContainer>
+        <>
+            <style>{transitionStyles}</style>
+            <PlayerContainer>
+                <ControlsBar>
+                    <PlayButton onClick={togglePlayPause} disabled={songQueue.length === 0}>
+                        {isPlaying ? '⏸' : '▶'}
+                    </PlayButton>
+                    <CurrentTimeDisplay>
+                        {currentSong ? `${formatTime(currentTime)} / ${formatTime(duration)}` : '--:-- / --:--'}
+                    </CurrentTimeDisplay>
+                    {currentSong && (
+                        <div style={{ color: '#ffffff', fontSize: '13px', fontWeight: '600' }}>
+                            {currentSong.title} - {currentSong.artist}
+                        </div>
+                    )}
+                </ControlsBar>
+                
+                <TimelineContainer ref={timelineRef}>
+                    {songQueue.length === 0 ? (
+                        <NoSongsText>Add songs to the canvas to build your queue</NoSongsText>
+                    ) : (
+                        <Timeline>
+                            {songQueue.map((song, index) => (
+                                <React.Fragment key={`segment-${song.id}-${index}`}>
+                                    <SongClip
+                                        ref={(el) => (clipRefs.current[index] = el)}
+                                        isPlaying={currentSong?.id === song.id}
+                                        onClick={() => handleSongClick(song, index)}
+                                    >
+                                        <AlbumCover 
+                                            src={song.albumCover || '/Ken_Carson_Project_X_cover.jpeg'} 
+                                            alt={song.title}
+                                        />
+                                        <SongInfo>
+                                            <SongTitle isPlaying={currentSong?.id === song.id}>
+                                                {song.title}
+                                            </SongTitle>
+                                            <SongArtist>{song.artist}</SongArtist>
+                                        </SongInfo>
+                                        <SongDuration>{song.duration}</SongDuration>
+                                    </SongClip>
+                                    {index < songQueue.length - 1 && (
+                                        <TransitionBox 
+                                            className=""
+                                            title="Transition (feature coming soon)"
+                                        />
+                                    )}
+                                </React.Fragment>
+                            ))}
+                            {currentSong && <Playhead position={calculatePlayheadPosition()} />}
+                        </Timeline>
+                    )}
+                </TimelineContainer>
+            </PlayerContainer>
+        </>
     );
 };
 

@@ -56,18 +56,6 @@ body {
     border-radius: 100%;
 }
 
-.react-flow__node-turbo.selected .wrapper.gradient:before {
-    content: '';
-    background: conic-gradient(from -160deg at 50% 50%,
-            #e92a67 0deg,
-            #a853ba 120deg,
-            #2a8af6 240deg,
-            rgba(42, 138, 246, 0) 360deg);
-    animation: spinner 4s linear infinite;
-    transform: translate(-50%, -50%) rotate(0deg);
-    z-index: -1;
-}
-
 .react-flow__node-turbo .wrapper.gradient.playing:before {
     content: '';
     background: conic-gradient(from -160deg at 50% 50%,
@@ -166,6 +154,25 @@ body {
     stroke: url(#edge-gradient);
     stroke-width: 2;
     stroke-opacity: 0.75;
+}
+
+.react-flow__edge.transition-playing .react-flow__edge-path {
+    stroke: #e92a67;
+    stroke-width: 3;
+    stroke-opacity: 1;
+    animation: edgeGlow 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(233, 42, 103, 0.8));
+}
+
+@keyframes edgeGlow {
+    0%, 100% {
+        stroke-opacity: 1;
+        filter: drop-shadow(0 0 8px rgba(233, 42, 103, 0.8));
+    }
+    50% {
+        stroke-opacity: 0.6;
+        filter: drop-shadow(0 0 15px rgba(233, 42, 103, 1));
+    }
 }
 
 .react-flow__controls button {

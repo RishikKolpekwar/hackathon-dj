@@ -1,5 +1,5 @@
 import React from 'react';
-import { getBezierPath, EdgeProps } from '@xyflow/react';
+import { getBezierPath } from '@xyflow/react';
 
 export default function TurboEdge({
     id,
@@ -11,6 +11,7 @@ export default function TurboEdge({
     targetPosition,
     style = {},
     markerEnd,
+    data,
 }) {
     const xEqual = sourceX === targetX;
     const yEqual = sourceY === targetY;
@@ -25,12 +26,14 @@ export default function TurboEdge({
         targetPosition,
     });
 
+    const isTransitioning = data?.isTransitioning || false;
+
     return (
         <>
             <path
                 id={id}
                 style={style}
-                className="react-flow__edge-path"
+                className={`react-flow__edge-path ${isTransitioning ? 'transition-playing' : ''}`}
                 d={edgePath}
                 markerEnd={markerEnd}
             />

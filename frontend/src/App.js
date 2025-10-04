@@ -191,8 +191,14 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
     }
   }, [popupState.show, handleClosePopup]);
 
-  // Combine regular edges with preview edge
-  const allEdges = [...edges];
+  // Combine regular edges with preview edge, and mark transitioning edge
+  const allEdges = edges.map(edge => ({
+    ...edge,
+    data: {
+      ...edge.data,
+      isTransitioning: edge.id === transitioningEdgeId
+    }
+  }));
   if (previewEdge) {
     allEdges.push(previewEdge);
   }
@@ -270,6 +276,7 @@ function App() {
   });
   const [previewEdge, setPreviewEdge] = useState(null);
   const [currentSong, setCurrentSong] = useState(null);
+  const [transitioningEdgeId, setTransitioningEdgeId] = useState(null);
 
   // Build song queue from connected nodes
   const songQueue = useMemo(() => {
@@ -343,7 +350,14 @@ function App() {
           </ReactFlowProvider>
         </RightPanel>
       </AppContainer>
-      <MusicPlayer songQueue={songQueue} currentSong={currentSong} setCurrentSong={setCurrentSong} />
+      <MusicPlayer 
+        songQueue={songQueue} 
+        currentSong={currentSong} 
+        setCurrentSong={setCurrentSong}
+        nodes={nodes}
+        edges={edges}
+        setTransitioningEdgeId={setTransitioningEdgeId}
+      />
     </>
   );
 }
