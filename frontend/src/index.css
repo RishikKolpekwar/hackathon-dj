@@ -158,20 +158,31 @@ body {
 
 .react-flow__edge.transition-playing .react-flow__edge-path {
     stroke: #e92a67;
-    stroke-width: 3;
+    stroke-width: 4;
     stroke-opacity: 1;
-    animation: edgeGlow 2s ease-in-out infinite;
-    filter: drop-shadow(0 0 8px rgba(233, 42, 103, 0.8));
+    animation: edgeGlow 1s ease-in-out infinite, edgePulse 0.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px rgba(233, 42, 103, 1)) drop-shadow(0 0 20px rgba(233, 42, 103, 0.6));
+    stroke-dasharray: 10 5;
+    stroke-dashoffset: 0;
 }
 
 @keyframes edgeGlow {
     0%, 100% {
         stroke-opacity: 1;
-        filter: drop-shadow(0 0 8px rgba(233, 42, 103, 0.8));
+        filter: drop-shadow(0 0 12px rgba(233, 42, 103, 1)) drop-shadow(0 0 20px rgba(233, 42, 103, 0.6));
     }
     50% {
-        stroke-opacity: 0.6;
-        filter: drop-shadow(0 0 15px rgba(233, 42, 103, 1));
+        stroke-opacity: 0.7;
+        filter: drop-shadow(0 0 20px rgba(233, 42, 103, 1)) drop-shadow(0 0 30px rgba(168, 83, 186, 0.8));
+    }
+}
+
+@keyframes edgePulse {
+    0% {
+        stroke-dashoffset: 0;
+    }
+    100% {
+        stroke-dashoffset: -15;
     }
 }
 

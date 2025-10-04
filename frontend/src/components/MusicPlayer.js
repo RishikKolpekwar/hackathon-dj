@@ -289,15 +289,15 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
           setCurrentSongIndex(0);
         }
       } else {
-                // Song just ended, check if there's a transition
-                const currentQueueItem = songQueue[currentSongIndex];
-                if (currentQueueItem?.hasTransition && currentQueueItem.transitionFile) {
-                    // Play transition
-                    setIsPlayingTransition(true);
-                    setTransitioningEdgeId(currentQueueItem.edgeToNext);
-                    audio.src = currentQueueItem.transitionFile;
-                    audio.load();
-                    audio.play().catch(err => console.error('Error playing transition:', err));
+        // Song just ended, check if there's a transition
+        const currentQueueItem = songQueue[currentSongIndex];
+        if (currentQueueItem?.hasTransition && currentQueueItem.transitionFile) {
+          // Play transition
+          setIsPlayingTransition(true);
+          setTransitioningEdgeId(currentQueueItem.edgeToNext);
+          audio.src = currentQueueItem.transitionFile;
+          audio.load();
+          audio.play().catch(err => console.error('Error playing transition:', err));
         } else {
           // No transition, just advance to next song
           const nextIndex = currentSongIndex + 1;
@@ -502,9 +502,9 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
                     />
                   )}
                 </React.Fragment>
-              ))}
-              {currentSong && <Playhead position={calculatePlayheadPosition()} />}
-            </Timeline>
+                            ))}
+                            {currentSong && !isPlayingTransition && <Playhead position={calculatePlayheadPosition()} />}
+                        </Timeline>
           )}
         </TimelineContainer>
       </PlayerContainer>
