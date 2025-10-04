@@ -49,7 +49,7 @@ export default memo(({ id, data, selected, onDelete, onPlay }) => {
                             position: 'absolute',
                             top: '6px',
                             left: '6px',
-                            background: 'rgba(233, 42, 103, 0.8)',
+                            background: 'rgba(168, 83, 186, 0.8)',
                             border: 'none',
                             color: '#fff',
                             fontSize: '10px',
@@ -69,7 +69,7 @@ export default memo(({ id, data, selected, onDelete, onPlay }) => {
                             e.target.style.transform = 'scale(1.1)';
                         }}
                         onMouseLeave={(e) => {
-                            e.target.style.background = 'rgba(233, 42, 103, 0.8)';
+                            e.target.style.background = 'rgba(168, 83, 186, 0.8)';
                             e.target.style.transform = 'scale(1)';
                         }}
                     >
