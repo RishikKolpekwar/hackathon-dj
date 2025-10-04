@@ -1,7 +1,15 @@
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 
-export default memo(({ data, selected }) => {
+export default memo(({ id, data, selected, onDelete }) => {
+    const handleDeleteClick = (e) => {
+        e.stopPropagation(); // Prevent node click event
+        console.log('Delete button clicked for node:', id);
+        if (onDelete) {
+            onDelete(id);
+        }
+    };
+
     return (
         <>
             <div className={`wrapper gradient ${selected ? 'selected' : ''}`}>
@@ -28,27 +36,60 @@ export default memo(({ data, selected }) => {
                         </div>
                     </div>
 
-                    {/* Input handle positioned at center-top */}
+                    {/* Delete button */}
+                    <button
+                        onClick={handleDeleteClick}
+                        style={{
+                            position: 'absolute',
+                            top: '6px',
+                            right: '6px',
+                            background: 'rgba(0, 0, 0, 0.6)',
+                            border: 'none',
+                            color: '#999',
+                            fontSize: '14px',
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease',
+                            zIndex: 10
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.background = 'rgba(220, 38, 38, 0.8)';
+                            e.target.style.color = '#fff';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.background = 'rgba(0, 0, 0, 0.6)';
+                            e.target.style.color = '#999';
+                        }}
+                    >
+                        ×
+                    </button>
+
+                    {/* Input handle positioned at center-left */}
                     <Handle
                         type="target"
-                        position={Position.Top}
+                        position={Position.Left}
                         id="input"
                         style={{
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            top: '-8px'
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            left: '-8px'
                         }}
                     />
 
-                    {/* Output handle positioned at center-bottom */}
+                    {/* Output handle positioned at center-right */}
                     <Handle
                         type="source"
-                        position={Position.Bottom}
+                        position={Position.Right}
                         id="output"
                         style={{
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            bottom: '-8px'
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            right: '-8px'
                         }}
                     />
                 </div>

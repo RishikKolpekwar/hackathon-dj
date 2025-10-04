@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useReactFlow } from '@xyflow/react';
 
-const slideDown = keyframes`
+const slideUp = keyframes`
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -24,32 +24,17 @@ const DrawerPositioner = styled.div`
 `;
 
 const DrawerContainer = styled.div`
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  border: 2px solid transparent;
-  border-image: linear-gradient(135deg, #e92a67 0%, #a853ba 50%, #2a8af6 100%) 1;
-  border-radius: 12px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
   padding: 16px;
   min-width: 250px;
   max-width: 300px;
   max-height: 400px;
   overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  animation: ${slideDown} 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: ${slideUp} 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: auto;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -1px;
-    left: -1px;
-    right: -1px;
-    bottom: -1px;
-    background: linear-gradient(135deg, #e92a67 0%, #a853ba 50%, #2a8af6 100%);
-    border-radius: 12px;
-    z-index: -1;
-    opacity: 0.3;
-  }
 `;
 
 const Connector = styled.div`
@@ -59,7 +44,7 @@ const Connector = styled.div`
   transform: translateX(-50%);
   width: 2px;
   height: 20px;
-  background: linear-gradient(to bottom, rgba(42, 138, 246, 0.8), rgba(42, 138, 246, 0.3));
+  background: linear-gradient(to bottom, rgba(102, 102, 102, 0.8), rgba(102, 102, 102, 0.3));
   
   &::before {
     content: '';
@@ -67,50 +52,46 @@ const Connector = styled.div`
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background: #2a8af6;
-    box-shadow: 0 0 10px rgba(42, 138, 246, 0.8);
+    background: #666;
+    box-shadow: 0 0 8px rgba(102, 102, 102, 0.6);
   }
 `;
 
 const PopupTitle = styled.div`
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  text-align: center;
-  background: linear-gradient(135deg, #e92a67 0%, #a853ba 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #888;
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 `;
 
 const ConnectionOption = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
-  margin-bottom: 4px;
-  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 2px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: ${props => props.isHovered ? 'rgba(42, 138, 246, 0.1)' : 'transparent'};
-  border: ${props => props.isHovered ? '1px solid rgba(42, 138, 246, 0.3)' : '1px solid transparent'};
+  transition: all 0.15s ease;
+  background: ${props => props.isHovered ? '#252525' : 'transparent'};
+  border: 1px solid ${props => props.isHovered ? '#444' : 'transparent'};
 
   &:hover {
-    background: rgba(42, 138, 246, 0.1);
-    border: 1px solid rgba(42, 138, 246, 0.3);
-    transform: translateX(2px);
+    background: #252525;
+    border: 1px solid #444;
   }
 `;
 
 const SongIcon = styled.div`
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #e92a67 0%, #a853ba 100%);
+  background: #666;
   flex-shrink: 0;
 `;
 
@@ -119,34 +100,35 @@ const SongInfo = styled.div`
 `;
 
 const SongTitle = styled.div`
-  color: #fff;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.2;
+  color: #ddd;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.3;
 `;
 
 const SongArtist = styled.div`
-  color: #888;
-  font-size: 11px;
-  line-height: 1.2;
+  color: #777;
+  font-size: 10px;
+  line-height: 1.3;
 `;
 
 const CloseButton = styled.button`
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 6px;
+  right: 6px;
   background: none;
   border: none;
-  color: #888;
-  font-size: 16px;
+  color: #666;
+  font-size: 18px;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  line-height: 1;
   transition: all 0.2s ease;
 
   &:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.1);
+    color: #aaa;
+    background: #252525;
   }
 `;
 
@@ -195,9 +177,11 @@ const ConnectionPopup = ({
 
     const reactFlowRect = reactFlowElement.getBoundingClientRect();
     
-    // Calculate position below the node, centered
+    // Calculate position below the node, perfectly centered horizontally
     const drawerWidth = 250;
-    const x = nodeRect.left - reactFlowRect.left + (nodeRect.width / 2) - ((drawerWidth * viewport.zoom) / 2);
+    const nodeCenterX = nodeRect.left + (nodeRect.width / 2);
+    const drawerCenterX = (drawerWidth * viewport.zoom) / 2;
+    const x = nodeCenterX - reactFlowRect.left - drawerCenterX;
     const y = nodeRect.bottom - reactFlowRect.top + (20 * viewport.zoom);
 
     const position = { x, y, zoom: viewport.zoom };

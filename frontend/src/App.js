@@ -76,8 +76,22 @@ const initialEdges = [];
 function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, popupState, setPopupState, previewEdge, setPreviewEdge }) {
   const { screenToFlowPosition } = useReactFlow();
 
+  const handleDeleteNode = useCallback((nodeId) => {
+    console.log('Deleting node:', nodeId);
+    setNodes((nds) => {
+      const filtered = nds.filter((node) => node.id !== nodeId);
+      console.log('Nodes before:', nds.length, 'Nodes after:', filtered.length);
+      return filtered;
+    });
+    setEdges((eds) => {
+      const filtered = eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId);
+      console.log('Edges before:', eds.length, 'Edges after:', filtered.length);
+      return filtered;
+    });
+  }, [setNodes, setEdges]);
+
   const nodeTypes = {
-    turbo: TurboNode,
+    turbo: (props) => <TurboNode {...props} onDelete={handleDeleteNode} />,
   };
 
   const onDragOver = useCallback((event) => {
