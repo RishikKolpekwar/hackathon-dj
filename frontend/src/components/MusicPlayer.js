@@ -340,7 +340,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
             setIsPlaying(true);
             setIsPlayingTransition(false);
             setTransitioningEdgeId(null);
-            
+
             // Find index in queue
             const index = songQueue.findIndex(item => item.song.id === currentSong.id);
             if (index !== -1) {
@@ -359,16 +359,16 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
 
     const togglePlayPause = () => {
         const audio = audioRef.current;
-        
+
         if (songQueue.length === 0) return;
-        
+
         if (!currentSong && songQueue.length > 0) {
             // Start playing first song in queue
             setCurrentSong(songQueue[0].song);
             setCurrentSongIndex(0);
             return;
         }
-        
+
         if (!audio) return;
 
         if (isPlaying) {
@@ -389,9 +389,9 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
     // Calculate playhead position
     const calculatePlayheadPosition = () => {
         if (!currentSong || !timelineRef.current || !clipRefs.current[currentSongIndex]) return 0;
-        
+
         const transitionBoxWidth = 60;
-        
+
         // Calculate cumulative width of all clips and transitions before current one
         let cumulativeWidth = 0;
         for (let i = 0; i < currentSongIndex; i++) {
@@ -403,35 +403,35 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
                 cumulativeWidth += transitionBoxWidth;
             }
         }
-        
+
         // Add progress within current clip
         const currentClipWidth = clipRefs.current[currentSongIndex]?.offsetWidth || 250;
         const progressInCurrentClip = duration > 0 ? (currentTime / duration) * currentClipWidth : 0;
-        
+
         return cumulativeWidth + progressInCurrentClip;
     };
 
     const handleTimelineClick = (e) => {
         if (!timelineRef.current || songQueue.length === 0) return;
-        
+
         const audio = audioRef.current;
         if (!audio) return;
 
         const rect = timelineRef.current.getBoundingClientRect();
         const clickX = e.clientX - rect.left + timelineRef.current.scrollLeft;
-        
+
         const transitionBoxWidth = 60;
-        
+
         // Find which song was clicked
         let cumulativeWidth = 0;
         for (let i = 0; i < songQueue.length; i++) {
             const clipWidth = clipRefs.current[i]?.offsetWidth || 250;
-            
+
             if (clickX >= cumulativeWidth && clickX < cumulativeWidth + clipWidth) {
                 // Clicked within this song
                 const clickPositionInClip = clickX - cumulativeWidth;
                 const percentage = clickPositionInClip / clipWidth;
-                
+
                 // If clicking a different song, switch to it
                 if (i !== currentSongIndex) {
                     setCurrentSong(songQueue[i].song);
@@ -443,12 +443,12 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
                     audio.currentTime = newTime;
                     setCurrentTime(newTime);
                 }
-                
+
                 return;
             }
-            
+
             cumulativeWidth += clipWidth;
-            
+
             // Skip transition box area if it exists (can't click on it)
             if (songQueue[i].hasTransition && i < songQueue.length - 1) {
                 cumulativeWidth += transitionBoxWidth;
@@ -485,8 +485,8 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
                                         ref={(el) => (clipRefs.current[index] = el)}
                                         isPlaying={!isPlayingTransition && currentSong?.id === item.song.id}
                                     >
-                                        <AlbumCover 
-                                            src={item.song.albumCover || '/Ken_Carson_Project_X_cover.jpeg'} 
+                                        <AlbumCover
+                                            src={item.song.albumCover || '/Ken_Carson_Project_X_cover.jpeg'}
                                             alt={item.song.title}
                                         />
                                         <SongInfo>
@@ -498,7 +498,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
                                         <SongDuration>{item.song.duration}</SongDuration>
                                     </SongClip>
                                     {item.hasTransition && index < songQueue.length - 1 && (
-                                        <TransitionBox 
+                                        <TransitionBox
                                             className={isPlayingTransition && index === currentSongIndex ? 'playing' : ''}
                                             title={item.transitionFile || 'Transition'}
                                         />
