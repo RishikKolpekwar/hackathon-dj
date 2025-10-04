@@ -21,7 +21,7 @@ const AppContainer = styled.div`
   display: flex;
   height: 100vh;
   background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #2d2d2d 100%);
-  padding-bottom: 80px; /* Space for music player */
+  padding-bottom: 120px; /* Space for music player */
 `;
 
 const LeftPanel = styled.div`
@@ -272,6 +272,50 @@ function App() {
   const [previewEdge, setPreviewEdge] = useState(null);
   const [currentSong, setCurrentSong] = useState(null);
 
+  // Build song queue from connected nodes
+  const songQueue = useMemo(() => {
+    if (nodes.length === 0) return [];
+    
+    // Find all nodes that have no incoming edges (starting points)
+    const nodesWithIncoming = new Set(edges.map(e => e.target));
+    const startNodes = nodes.filter(n => !nodesWithIncoming.has(n.id));
+    
+    // If no start node found, just return all nodes
+    if (startNodes.length === 0) return nodes.map(n => n.data.song);
+    
+    // Build queue by following edges from start node
+    const queue = [];
+    const visited = new Set();
+    
+    const buildQueue = (nodeId) => {
+      if (visited.has(nodeId)) return;
+      visited.add(nodeId);
+      
+      const node = nodes.find(n => n.id === nodeId);
+      if (node) {
+        queue.push(node.data.song);
+        
+        // Find next node
+        const nextEdge = edges.find(e => e.source === nodeId);
+        if (nextEdge) {
+          buildQueue(nextEdge.target);
+        }
+      }
+    };
+    
+    // Start from first start node
+    buildQueue(startNodes[0].id);
+    
+    // Add any unconnected nodes at the end
+    nodes.forEach(node => {
+      if (!visited.has(node.id)) {
+        queue.push(node.data.song);
+      }
+    });
+    
+    return queue;
+  }, [nodes, edges]);
+
   // Get songs that are currently on the canvas
   const songsOnCanvas = useMemo(() => {
     return nodes.map(node => node.data.song.id);
@@ -306,7 +350,7 @@ function App() {
           </ReactFlowProvider>
         </RightPanel>
       </AppContainer>
-      <MusicPlayer currentSong={currentSong} />
+      <MusicPlayer songQueue={songQueue} currentSong={currentSong} setCurrentSong={setCurrentSong} />
     </>
   );
 }
