@@ -1,11 +1,18 @@
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 
-export default memo(({ id, data, selected, onDelete }) => {
+export default memo(({ id, data, selected, onDelete, onPlay }) => {
     const handleDeleteClick = (e) => {
         e.stopPropagation(); // Prevent node click event
         if (onDelete) {
             onDelete(id);
+        }
+    };
+
+    const handlePlayClick = (e) => {
+        e.stopPropagation(); // Prevent node click event
+        if (onPlay) {
+            onPlay(data.song);
         }
     };
 
@@ -15,8 +22,8 @@ export default memo(({ id, data, selected, onDelete }) => {
                 <div className="inner">
                     <div className="body">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <img 
-                                src={data.song.albumCover || '/Ken_Carson_Project_X_cover.jpeg'} 
+                            <img
+                                src={data.song.albumCover || '/Ken_Carson_Project_X_cover.jpeg'}
                                 alt={data.song.title}
                                 style={{
                                     width: '48px',
@@ -34,6 +41,40 @@ export default memo(({ id, data, selected, onDelete }) => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Play button */}
+                    <button
+                        onClick={handlePlayClick}
+                        style={{
+                            position: 'absolute',
+                            top: '6px',
+                            left: '6px',
+                            background: 'rgba(233, 42, 103, 0.8)',
+                            border: 'none',
+                            color: '#fff',
+                            fontSize: '10px',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease',
+                            zIndex: 10,
+                            paddingLeft: '2px' // Adjust for play icon visual centering
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.background = 'rgba(168, 83, 186, 0.9)';
+                            e.target.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.background = 'rgba(233, 42, 103, 0.8)';
+                            e.target.style.transform = 'scale(1)';
+                        }}
+                    >
+                        ▶
+                    </button>
 
                     {/* Delete button */}
                     <button

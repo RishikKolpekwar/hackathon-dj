@@ -14,12 +14,14 @@ import Sidebar from './components/Sidebar';
 import TurboNode from './components/TurboNode.js';
 import TurboEdge from './components/TurboEdge.js';
 import ConnectionPopup from './components/ConnectionPopup.js';
+import MusicPlayer from './components/MusicPlayer';
 import { songs as initialSongs } from './data/songs';
 
 const AppContainer = styled.div`
   display: flex;
   height: 100vh;
   background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #2d2d2d 100%);
+  padding-bottom: 80px; /* Space for music player */
 `;
 
 const LeftPanel = styled.div`
@@ -72,7 +74,7 @@ const initialNodes = [];
 const initialEdges = [];
 
 // Inner component that uses React Flow hooks
-function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, popupState, setPopupState, previewEdge, setPreviewEdge }) {
+function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, popupState, setPopupState, previewEdge, setPreviewEdge, setCurrentSong }) {
   const { screenToFlowPosition } = useReactFlow();
 
   const handleDeleteNode = useCallback((nodeId) => {
@@ -81,7 +83,7 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
   }, [setNodes, setEdges]);
 
   const nodeTypes = {
-    turbo: (props) => <TurboNode {...props} onDelete={handleDeleteNode} />,
+    turbo: (props) => <TurboNode {...props} onDelete={handleDeleteNode} onPlay={setCurrentSong} />,
   };
 
   const onDragOver = useCallback((event) => {
@@ -218,7 +220,7 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
         maxZoom={2}
         attributionPosition="bottom-left"
       >
-        <Controls 
+        <Controls
           showInteractive={false}
           fitViewOptions={{ padding: 0.1, includeHiddenNodes: false }}
         />
@@ -268,6 +270,7 @@ function App() {
     currentNodeId: null
   });
   const [previewEdge, setPreviewEdge] = useState(null);
+  const [currentSong, setCurrentSong] = useState(null);
 
   // Get songs that are currently on the canvas
   const songsOnCanvas = useMemo(() => {
@@ -280,27 +283,31 @@ function App() {
   }, [songsOnCanvas]);
 
   return (
-    <AppContainer>
-      <LeftPanel>
-        <Sidebar songs={availableSongs} />
-      </LeftPanel>
-      <RightPanel>
-        <ReactFlowProvider>
-          <FlowContent
-            nodes={nodes}
-            edges={edges}
-            setNodes={setNodes}
-            setEdges={setEdges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            popupState={popupState}
-            setPopupState={setPopupState}
-            previewEdge={previewEdge}
-            setPreviewEdge={setPreviewEdge}
-          />
-        </ReactFlowProvider>
-      </RightPanel>
-    </AppContainer>
+    <>
+      <AppContainer>
+        <LeftPanel>
+          <Sidebar songs={availableSongs} />
+        </LeftPanel>
+        <RightPanel>
+          <ReactFlowProvider>
+            <FlowContent
+              nodes={nodes}
+              edges={edges}
+              setNodes={setNodes}
+              setEdges={setEdges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              popupState={popupState}
+              setPopupState={setPopupState}
+              previewEdge={previewEdge}
+              setPreviewEdge={setPreviewEdge}
+              setCurrentSong={setCurrentSong}
+            />
+          </ReactFlowProvider>
+        </RightPanel>
+      </AppContainer>
+      <MusicPlayer currentSong={currentSong} />
+    </>
   );
 }
 
