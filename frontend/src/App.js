@@ -174,14 +174,11 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
     if (!sourceNode || !targetNode) return;
     if (sourceNode.id === targetNode.id) return;
 
-    const sourceHasOutgoing = edges.some((e) => e.source === sourceNode.id);
-    const targetHasIncoming = edges.some((e) => e.target === targetNode.id);
-    const edgeExists = edges.some((e) => e.source === sourceNode.id && e.target === targetNode.id);
+    // Replace any existing connection to target
+    const updatedEdges = edges.filter((e) => e.target !== targetNode.id);
 
-    if (sourceHasOutgoing || targetHasIncoming || edgeExists) {
-      setPreviewEdge(null);
-      return;
-    }
+    // Remove any existing outgoing from source
+    const finalEdges = updatedEdges.filter((e) => e.source !== sourceNode.id);
 
     const newEdge = {
       id: `edge-${sourceNode.id}-${targetNode.id}-${Date.now()}`,
@@ -191,14 +188,10 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
       updatable: false
     };
 
-    setEdges((eds) => [...eds, newEdge]);
+    setEdges((eds) => [...finalEdges, newEdge]);
     setPreviewEdge(null);
   }, [edges, setEdges, setPreviewEdge]);
 
-  const handleRemoveConnection = useCallback((edgeId) => {
-    setEdges((eds) => eds.filter((e) => e.id !== edgeId));
-    setPreviewEdge(null);
-  }, [setEdges, setPreviewEdge]);
 
   const handlePaneClick = useCallback((event) => {
     // Close popup when clicking on the pane (background)
@@ -266,7 +259,6 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
           onClose={handleClosePopup}
           onConnectionPreview={handleConnectionPreview}
           onConnectionCreate={handleConnectionCreate}
-          onRemoveConnection={handleRemoveConnection}
           previewTarget={previewEdge?.target}
         />
       )}

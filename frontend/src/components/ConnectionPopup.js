@@ -106,31 +106,6 @@ const CloseButton = styled.button`
   }
 `;
 
-const SectionTitle = styled.div`
-  color: #bbb;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin: 8px 0 6px;
-`;
-
-const ActionButton = styled.button`
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(233, 42, 103, 0.35);
-  background: rgba(233, 42, 103, 0.08);
-  color: #fff;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: rgba(233, 42, 103, 0.15);
-    transform: translateY(-1px);
-  }
-`;
-
 const ConnectionPopup = ({
     position,
     currentNode,
@@ -138,16 +113,11 @@ const ConnectionPopup = ({
     onClose,
     onConnectionPreview,
     onConnectionCreate,
-    onRemoveConnection,
-    previewTarget,
-    edges
+    previewTarget
 }) => {
     const [hoveredOption, setHoveredOption] = useState(null);
 
     const otherNodes = allNodes.filter(node => node.id !== currentNode.id);
-
-    const existingOutgoing = edges.find((e) => e.source === currentNode.id);
-    const existingIncoming = edges.find((e) => e.target === currentNode.id);
 
     const handleMouseEnter = (targetNode) => {
         setHoveredOption(targetNode.id);
@@ -164,56 +134,10 @@ const ConnectionPopup = ({
         onClose();
     };
 
-    const handleRemoveOutgoing = () => {
-        if (existingOutgoing) {
-            onRemoveConnection(existingOutgoing.id);
-            onClose();
-        }
-    };
-
-    const handleRemoveIncoming = () => {
-        if (existingIncoming) {
-            onRemoveConnection(existingIncoming.id);
-            onClose();
-        }
-    };
-
     return (
         <PopupContainer position={position}>
             <CloseButton onClick={onClose}>×</CloseButton>
-            <PopupTitle>Connections</PopupTitle>
-
-            {!!existingOutgoing && (
-                <>
-                    <SectionTitle>Current Output</SectionTitle>
-                    <ConnectionOption
-                        isHovered={false}
-                    >
-                        <SongIcon />
-                        <SongInfo>
-                            <SongTitle>{existingOutgoing.target}</SongTitle>
-                            <SongArtist>Connected</SongArtist>
-                        </SongInfo>
-                    </ConnectionOption>
-                    <ActionButton onClick={handleRemoveOutgoing}>Remove Output</ActionButton>
-                </>
-            )}
-
-            {!!existingIncoming && (
-                <>
-                    <SectionTitle>Current Input</SectionTitle>
-                    <ConnectionOption isHovered={false}>
-                        <SongIcon />
-                        <SongInfo>
-                            <SongTitle>{existingIncoming.source}</SongTitle>
-                            <SongArtist>Connected</SongArtist>
-                        </SongInfo>
-                    </ConnectionOption>
-                    <ActionButton onClick={handleRemoveIncoming}>Remove Input</ActionButton>
-                </>
-            )}
-
-            <SectionTitle>Connect To</SectionTitle>
+            <PopupTitle>Connect to other songs</PopupTitle>
             {otherNodes.map(node => (
                 <ConnectionOption
                     key={node.id}
@@ -221,10 +145,6 @@ const ConnectionPopup = ({
                     onMouseEnter={() => handleMouseEnter(node)}
                     onMouseLeave={handleMouseLeave}
                     onClick={() => handleConnectionClick(node)}
-                    style={{
-                        opacity: existingOutgoing ? 0.4 : 1,
-                        pointerEvents: existingOutgoing ? 'none' : 'auto'
-                    }}
                 >
                     <SongIcon />
                     <SongInfo>
