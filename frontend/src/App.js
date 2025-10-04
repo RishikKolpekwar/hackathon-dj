@@ -1,16 +1,26 @@
 
-import React, { useState } from 'react';
+import React, { useCallback } from 'react';
 import styled from 'styled-components';
-import { DndContext, DragOverlay } from '@dnd-kit/core';
+import {
+  ReactFlow,
+  MiniMap,
+  Controls,
+  Background,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  BackgroundVariant,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+
 import Sidebar from './components/Sidebar';
-import Canvas from './components/Canvas';
+import SongNode from './components/SongNode.js';
 import { songs as initialSongs } from './data/songs';
 
 const AppContainer = styled.div`
   display: flex;
   height: 100vh;
   background-color: #1a1a1a;
-  color: white;
 `;
 
 const LeftPanel = styled.div`
@@ -23,146 +33,135 @@ const LeftPanel = styled.div`
 const RightPanel = styled.div`
   flex: 1;
   position: relative;
-`;
 
-// Helper function to find a non-colliding position for new songs
-const getNonCollidingPosition = (desiredPosition, existingSongs, width, height) => {
-  const { x, y } = desiredPosition;
+  .react-flow__node {
+    background: #2d2d2d;
+    border: 2px solid #404040;
+    border-radius: 8px;
+    color: white;
+    padding: 16px;
+    width: 200px;
+    cursor: pointer;
 
-  // Check if the desired position collides with any existing song
-  const hasCollision = existingSongs.some(song => {
-    const songRight = (song.position?.x || 0) + width;
-    const songBottom = (song.position?.y || 0) + height;
-    const desiredRight = x + width;
-    const desiredBottom = y + height;
+    &:hover {
+      border-color: #5a5a5a;
+    }
 
-    return !(desiredRight <= (song.position?.x || 0) ||
-      desiredPosition.x >= songRight ||
-      desiredBottom <= (song.position?.y || 0) ||
-      desiredPosition.y >= songBottom);
-  });
-
-  if (!hasCollision) {
-    return desiredPosition;
-  }
-
-  // If there's a collision, try to find a nearby position
-  const offset = 30; // pixels to offset when collision detected
-  const attempts = [
-    { x: x + offset, y: y + offset },
-    { x: x - offset, y: y - offset },
-    { x: x + offset, y: y - offset },
-    { x: x - offset, y: y + offset },
-    { x: x + offset * 2, y: y },
-    { x: x - offset * 2, y: y },
-    { x: x, y: y + offset * 2 },
-    { x: x, y: y - offset * 2 },
-  ];
-
-  for (const attempt of attempts) {
-    const attemptHasCollision = existingSongs.some(song => {
-      const songRight = (song.position?.x || 0) + width;
-      const songBottom = (song.position?.y || 0) + height;
-      const attemptRight = attempt.x + width;
-      const attemptBottom = attempt.y + height;
-
-      return !(attemptRight <= (song.position?.x || 0) ||
-        attempt.x >= songRight ||
-        attemptBottom <= (song.position?.y || 0) ||
-        attempt.y >= songBottom);
-    });
-
-    if (!attemptHasCollision) {
-      return attempt;
+    &.selected {
+      border-color: #4CAF50;
+      box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
     }
   }
 
-  // If all attempts fail, return the original position
-  return desiredPosition;
-};
-
-function App() {
-  const [canvasSongs, setCanvasSongs] = useState([]);
-  const [activeId, setActiveId] = useState(null);
-
-  const handleDragStart = (event) => {
-    setActiveId(event.active.id);
-  };
-
-  const handleDragEnd = (event) => {
-    const { active, over, delta } = event;
-    setActiveId(null);
-
-    if (over && over.id === 'canvas-drop-zone') {
-      const draggedSong = initialSongs.find(song => song.id === active.id) ||
-        canvasSongs.find(song => song.id === active.id);
-
-      if (draggedSong) {
-        // If it's from the sidebar, create a new instance at drop position
-        if (initialSongs.find(song => song.id === active.id)) {
-          // Calculate position relative to canvas
-          const canvasRect = document.querySelector('[data-canvas]').getBoundingClientRect();
-          const dropX = event.activatorEvent.clientX - canvasRect.left - 100; // Center the song horizontally
-          const dropY = event.activatorEvent.clientY - canvasRect.top - 40; // Center the song vertically
-
-          // Check for collisions with existing songs and adjust position if needed
-          const adjustedPosition = getNonCollidingPosition(
-            { x: Math.max(0, dropX), y: Math.max(0, dropY) },
-            canvasSongs,
-            220, // song width + some padding
-            80   // song height + some padding
-          );
-
-          const newSong = {
-            ...draggedSong,
-            id: `${draggedSong.id}-${Date.now()}`,
-            position: adjustedPosition,
-          };
-          setCanvasSongs(prev => [...prev, newSong]);
-        } else {
-          // If it's already on canvas, update its position
-          setCanvasSongs(prev => prev.map(song =>
-            song.id === active.id
-              ? { ...song, position: { x: song.position.x + delta.x, y: song.position.y + delta.y } }
-              : song
-          ));
-        }
+  .react-flow__edge {
+    &.selected {
+      .react-flow__edge-path {
+        stroke: #4CAF50;
+        stroke-width: 3;
       }
     }
-  };
+  }
 
-  const handleCanvasSongUpdate = (updatedSongs) => {
-    setCanvasSongs(updatedSongs);
-  };
+  .react-flow__handle {
+    background: #4CAF50;
+    border: 2px solid #ffffff;
+    width: 12px;
+    height: 12px;
+
+    &.react-flow__handle-valid {
+      background: #4CAF50;
+    }
+  }
+`;
+
+const nodeTypes = {
+  songNode: SongNode,
+};
+
+const initialNodes = [];
+const initialEdges = [];
+
+function App() {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  const onConnect = useCallback(
+    (params) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges],
+  );
+
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+
+      const songData = event.dataTransfer.getData('application/reactflow');
+      if (typeof songData === 'undefined' || !songData) {
+        return;
+      }
+
+      const song = JSON.parse(songData);
+
+      // Get the ReactFlow instance bounds to calculate relative position
+      const reactFlowBounds = document.querySelector('.react-flow__viewport').getBoundingClientRect();
+
+      const position = {
+        x: event.clientX - reactFlowBounds.left - 100, // Center the node horizontally
+        y: event.clientY - reactFlowBounds.top - 40,   // Center the node vertically
+      };
+
+      const newNode = {
+        id: `${song.id}-${Date.now()}`,
+        type: 'songNode',
+        position,
+        data: { song },
+      };
+
+      setNodes((nds) => [...nds, newNode]);
+    },
+    [setNodes]
+  );
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <AppContainer>
-        <LeftPanel>
-          <Sidebar songs={initialSongs} />
-        </LeftPanel>
-        <RightPanel>
-          <Canvas songs={canvasSongs} onSongsUpdate={handleCanvasSongUpdate} />
-        </RightPanel>
-      </AppContainer>
-      <DragOverlay>
-        {activeId ? (
-          <div style={{ opacity: 0.5 }}>
-            {initialSongs.find(song => song.id === activeId) && (
-              <div style={{
-                padding: '12px 16px',
-                backgroundColor: '#3a3a3a',
-                borderRadius: '6px',
-                color: 'white',
-                width: '200px',
-              }}>
-                {initialSongs.find(song => song.id === activeId).title}
-              </div>
-            )}
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+    <AppContainer>
+      <LeftPanel>
+        <Sidebar songs={initialSongs} />
+      </LeftPanel>
+      <RightPanel>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          nodeTypes={nodeTypes}
+          fitView
+          attributionPosition="bottom-left"
+          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+          minZoom={0.1}
+          maxZoom={2}
+        >
+          <Controls />
+          <MiniMap
+            nodeColor="#2d2d2d"
+            maskColor="rgba(0, 0, 0, 0.5)"
+            style={{ backgroundColor: '#1a1a1a' }}
+          />
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={50}
+            size={1}
+            color="#333"
+          />
+        </ReactFlow>
+      </RightPanel>
+    </AppContainer>
   );
 }
 

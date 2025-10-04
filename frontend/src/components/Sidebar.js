@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useDraggable } from '@dnd-kit/core';
 
 const SidebarContainer = styled.div`
   padding: 20px;
@@ -47,44 +46,34 @@ const SongArtist = styled.div`
   margin-top: 2px;
 `;
 
-const DraggableSong = ({ song }) => {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id: song.id,
-        data: {
-            type: 'song',
-            song,
-        },
-    });
+const DraggableSong = ({ song, onDragStart }) => {
+  const handleDragStart = (event) => {
+    event.dataTransfer.setData('application/reactflow', JSON.stringify(song));
+    event.dataTransfer.effectAllowed = 'move';
+  };
 
-    const style = transform ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    } : undefined;
-
-    return (
-        <SongItem
-            ref={setNodeRef}
-            style={style}
-            {...listeners}
-            {...attributes}
-            data-is-dragging={isDragging}
-        >
-            <SongTitle>{song.title}</SongTitle>
-            <SongArtist>{song.artist}</SongArtist>
-        </SongItem>
-    );
+  return (
+    <SongItem
+      draggable
+      onDragStart={handleDragStart}
+    >
+      <SongTitle>{song.title}</SongTitle>
+      <SongArtist>{song.artist}</SongArtist>
+    </SongItem>
+  );
 };
 
 const Sidebar = ({ songs }) => {
-    return (
-        <SidebarContainer>
-            <Title>Songs</Title>
-            <SongList>
-                {songs.map((song) => (
-                    <DraggableSong key={song.id} song={song} />
-                ))}
-            </SongList>
-        </SidebarContainer>
-    );
+  return (
+    <SidebarContainer>
+      <Title>Songs</Title>
+      <SongList>
+        {songs.map((song) => (
+          <DraggableSong key={song.id} song={song} />
+        ))}
+      </SongList>
+    </SidebarContainer>
+  );
 };
 
 export default Sidebar;
