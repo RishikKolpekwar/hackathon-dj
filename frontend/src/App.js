@@ -157,6 +157,8 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
       id: `preview-${sourceNode.id}-${targetNode.id}`,
       source: sourceNode.id,
       target: targetNode.id,
+      sourceHandle: 'output',
+      targetHandle: 'input',
       type: 'turbo',
       animated: true,
       style: {
@@ -184,6 +186,8 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
       id: `edge-${sourceNode.id}-${targetNode.id}-${Date.now()}`,
       source: sourceNode.id,
       target: targetNode.id,
+      sourceHandle: 'output',
+      targetHandle: 'input',
       type: 'turbo',
       updatable: false
     };

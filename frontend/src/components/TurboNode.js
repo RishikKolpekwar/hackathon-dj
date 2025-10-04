@@ -29,8 +29,8 @@ export default memo(({ data, selected }) => {
                             </div>
                         </div>
                     </div>
-                    <Handle type="target" position={Position.Top} />
-                    <Handle type="source" position={Position.Bottom} />
+                    <Handle type="target" position={Position.Top} id="input" />
+                    <Handle type="source" position={Position.Bottom} id="output" />
                 </div>
             </div>
         </>
