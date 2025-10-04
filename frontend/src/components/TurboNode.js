@@ -29,8 +29,30 @@ export default memo(({ data, selected }) => {
                             </div>
                         </div>
                     </div>
-                    <Handle type="target" position={Position.Top} id="input" />
-                    <Handle type="source" position={Position.Bottom} id="output" />
+
+                    {/* Input handle positioned at center-top */}
+                    <Handle
+                        type="target"
+                        position={Position.Top}
+                        id="input"
+                        style={{
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            top: '-8px'
+                        }}
+                    />
+
+                    {/* Output handle positioned at center-bottom */}
+                    <Handle
+                        type="source"
+                        position={Position.Bottom}
+                        id="output"
+                        style={{
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            bottom: '-8px'
+                        }}
+                    />
                 </div>
             </div>
         </>
