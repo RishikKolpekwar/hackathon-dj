@@ -252,6 +252,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [currentSongIndex, setCurrentSongIndex] = useState(0);
+    const [isPlayingTransition, setIsPlayingTransition] = useState(false);
     const audioRef = useRef(null);
     const timelineRef = useRef(null);
     const clipRefs = useRef([]);
@@ -274,15 +275,42 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
         };
 
         const handleEnded = () => {
-            // Auto-advance to next song
-            const nextIndex = currentSongIndex + 1;
-            if (nextIndex < songQueue.length) {
-                setCurrentSongIndex(nextIndex);
-                setCurrentSong(songQueue[nextIndex]);
+            if (isPlayingTransition) {
+                // Transition just ended, play next song
+                setIsPlayingTransition(false);
+                setTransitioningEdgeId(null);
+                const nextIndex = currentSongIndex + 1;
+                if (nextIndex < songQueue.length) {
+                    setCurrentSongIndex(nextIndex);
+                    setCurrentSong(songQueue[nextIndex].song);
+                } else {
+                    setIsPlaying(false);
+                    setCurrentTime(0);
+                    setCurrentSongIndex(0);
+                }
             } else {
-                setIsPlaying(false);
-                setCurrentTime(0);
-                setCurrentSongIndex(0);
+                // Song just ended, check if there's a transition
+                const currentQueueItem = songQueue[currentSongIndex];
+                if (currentQueueItem?.hasTransition && currentQueueItem.transitionFile) {
+                    // Play transition
+                    setIsPlayingTransition(true);
+                    setTransitioningEdgeId(currentQueueItem.edgeToNext);
+                    const audioPath = `/songs/${currentQueueItem.transitionFile}`;
+                    audio.src = audioPath;
+                    audio.load();
+                    audio.play().catch(err => console.error('Error playing transition:', err));
+                } else {
+                    // No transition, just advance to next song
+                    const nextIndex = currentSongIndex + 1;
+                    if (nextIndex < songQueue.length) {
+                        setCurrentSongIndex(nextIndex);
+                        setCurrentSong(songQueue[nextIndex].song);
+                    } else {
+                        setIsPlaying(false);
+                        setCurrentTime(0);
+                        setCurrentSongIndex(0);
+                    }
+                }
             }
         };
 
@@ -295,7 +323,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
             audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
             audio.removeEventListener('ended', handleEnded);
         };
-    }, [currentSongIndex, songQueue, setCurrentSong]);
+    }, [currentSongIndex, songQueue, setCurrentSong, isPlayingTransition, setTransitioningEdgeId]);
 
     // Handle song changes
     useEffect(() => {
@@ -310,9 +338,11 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
             // Auto-play when new song is set
             audio.play().catch(err => console.error('Error playing audio:', err));
             setIsPlaying(true);
-
+            setIsPlayingTransition(false);
+            setTransitioningEdgeId(null);
+            
             // Find index in queue
-            const index = songQueue.findIndex(s => s.id === currentSong.id);
+            const index = songQueue.findIndex(item => item.song.id === currentSong.id);
             if (index !== -1) {
                 setCurrentSongIndex(index);
             }
@@ -322,21 +352,23 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
             setIsPlaying(false);
             setCurrentTime(0);
             setDuration(0);
+            setIsPlayingTransition(false);
+            setTransitioningEdgeId(null);
         }
-    }, [currentSong, songQueue]);
+    }, [currentSong, songQueue, setTransitioningEdgeId]);
 
     const togglePlayPause = () => {
         const audio = audioRef.current;
-
+        
         if (songQueue.length === 0) return;
-
+        
         if (!currentSong && songQueue.length > 0) {
             // Start playing first song in queue
-            setCurrentSong(songQueue[0]);
+            setCurrentSong(songQueue[0].song);
             setCurrentSongIndex(0);
             return;
         }
-
+        
         if (!audio) return;
 
         if (isPlaying) {
@@ -357,50 +389,52 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
     // Calculate playhead position
     const calculatePlayheadPosition = () => {
         if (!currentSong || !timelineRef.current || !clipRefs.current[currentSongIndex]) return 0;
-
+        
         const transitionBoxWidth = 60;
-
+        
         // Calculate cumulative width of all clips and transitions before current one
         let cumulativeWidth = 0;
         for (let i = 0; i < currentSongIndex; i++) {
             if (clipRefs.current[i]) {
                 cumulativeWidth += clipRefs.current[i].offsetWidth;
             }
-            // Add transition box width (between songs)
-            cumulativeWidth += transitionBoxWidth;
+            // Add transition box width only if this item has a transition
+            if (songQueue[i]?.hasTransition) {
+                cumulativeWidth += transitionBoxWidth;
+            }
         }
-
+        
         // Add progress within current clip
         const currentClipWidth = clipRefs.current[currentSongIndex]?.offsetWidth || 250;
         const progressInCurrentClip = duration > 0 ? (currentTime / duration) * currentClipWidth : 0;
-
+        
         return cumulativeWidth + progressInCurrentClip;
     };
 
     const handleTimelineClick = (e) => {
         if (!timelineRef.current || songQueue.length === 0) return;
-
+        
         const audio = audioRef.current;
         if (!audio) return;
 
         const rect = timelineRef.current.getBoundingClientRect();
         const clickX = e.clientX - rect.left + timelineRef.current.scrollLeft;
-
+        
         const transitionBoxWidth = 60;
-
+        
         // Find which song was clicked
         let cumulativeWidth = 0;
         for (let i = 0; i < songQueue.length; i++) {
             const clipWidth = clipRefs.current[i]?.offsetWidth || 250;
-
+            
             if (clickX >= cumulativeWidth && clickX < cumulativeWidth + clipWidth) {
                 // Clicked within this song
                 const clickPositionInClip = clickX - cumulativeWidth;
                 const percentage = clickPositionInClip / clipWidth;
-
+                
                 // If clicking a different song, switch to it
                 if (i !== currentSongIndex) {
-                    setCurrentSong(songQueue[i]);
+                    setCurrentSong(songQueue[i].song);
                     setCurrentSongIndex(i);
                     // The time will be set when the song loads via useEffect
                 } else if (duration > 0) {
@@ -409,14 +443,14 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
                     audio.currentTime = newTime;
                     setCurrentTime(newTime);
                 }
-
+                
                 return;
             }
-
+            
             cumulativeWidth += clipWidth;
-
-            // Skip transition box area (can't click on it)
-            if (i < songQueue.length - 1) {
+            
+            // Skip transition box area if it exists (can't click on it)
+            if (songQueue[i].hasTransition && i < songQueue.length - 1) {
                 cumulativeWidth += transitionBoxWidth;
             }
         }
@@ -445,28 +479,28 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
                         <NoSongsText>Add songs to the canvas to build your queue</NoSongsText>
                     ) : (
                         <Timeline onClick={handleTimelineClick}>
-                            {songQueue.map((song, index) => (
-                                <React.Fragment key={`segment-${song.id}-${index}`}>
+                            {songQueue.map((item, index) => (
+                                <React.Fragment key={`segment-${item.song.id}-${index}`}>
                                     <SongClip
                                         ref={(el) => (clipRefs.current[index] = el)}
-                                        isPlaying={currentSong?.id === song.id}
+                                        isPlaying={!isPlayingTransition && currentSong?.id === item.song.id}
                                     >
-                                        <AlbumCover
-                                            src={song.albumCover || '/Ken_Carson_Project_X_cover.jpeg'}
-                                            alt={song.title}
+                                        <AlbumCover 
+                                            src={item.song.albumCover || '/Ken_Carson_Project_X_cover.jpeg'} 
+                                            alt={item.song.title}
                                         />
                                         <SongInfo>
-                                            <SongTitle isPlaying={currentSong?.id === song.id}>
-                                                {song.title}
+                                            <SongTitle isPlaying={!isPlayingTransition && currentSong?.id === item.song.id}>
+                                                {item.song.title}
                                             </SongTitle>
-                                            <SongArtist>{song.artist}</SongArtist>
+                                            <SongArtist>{item.song.artist}</SongArtist>
                                         </SongInfo>
-                                        <SongDuration>{song.duration}</SongDuration>
+                                        <SongDuration>{item.song.duration}</SongDuration>
                                     </SongClip>
-                                    {index < songQueue.length - 1 && (
-                                        <TransitionBox
-                                            className=""
-                                            title="Transition (feature coming soon)"
+                                    {item.hasTransition && index < songQueue.length - 1 && (
+                                        <TransitionBox 
+                                            className={isPlayingTransition && index === currentSongIndex ? 'playing' : ''}
+                                            title={item.transitionFile || 'Transition'}
                                         />
                                     )}
                                 </React.Fragment>

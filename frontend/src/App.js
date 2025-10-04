@@ -278,7 +278,7 @@ function App() {
   const [currentSong, setCurrentSong] = useState(null);
   const [transitioningEdgeId, setTransitioningEdgeId] = useState(null);
 
-  // Build song queue from connected nodes
+  // Build song queue from connected nodes with transition info
   const songQueue = useMemo(() => {
     if (nodes.length === 0) return [];
 
@@ -286,8 +286,8 @@ function App() {
     const nodesWithIncoming = new Set(edges.map(e => e.target));
     const startNodes = nodes.filter(n => !nodesWithIncoming.has(n.id));
 
-    // If no start node found, just return all nodes
-    if (startNodes.length === 0) return nodes.map(n => n.data.song);
+    // If no start node found, just return empty queue
+    if (startNodes.length === 0) return [];
 
     // Build queue by following edges from start node
     const queue = [];
@@ -299,10 +299,16 @@ function App() {
 
       const node = nodes.find(n => n.id === nodeId);
       if (node) {
-        queue.push(node.data.song);
-
-        // Find next node
+        // Find the edge that connects this node to the next
         const nextEdge = edges.find(e => e.source === nodeId);
+        
+        queue.push({
+          song: node.data.song,
+          edgeToNext: nextEdge ? nextEdge.id : null,
+          hasTransition: nextEdge && node.data.song.postTransition ? true : false,
+          transitionFile: node.data.song.postTransition || null
+        });
+
         if (nextEdge) {
           buildQueue(nextEdge.target);
         }
