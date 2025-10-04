@@ -4,7 +4,6 @@ import { Handle, Position } from '@xyflow/react';
 export default memo(({ id, data, selected, onDelete }) => {
     const handleDeleteClick = (e) => {
         e.stopPropagation(); // Prevent node click event
-        console.log('Delete button clicked for node:', id);
         if (onDelete) {
             onDelete(id);
         }

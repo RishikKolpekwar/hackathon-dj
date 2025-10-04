@@ -1,5 +1,5 @@
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import styled from 'styled-components';
 import {
   ReactFlow,
@@ -77,17 +77,8 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
   const { screenToFlowPosition } = useReactFlow();
 
   const handleDeleteNode = useCallback((nodeId) => {
-    console.log('Deleting node:', nodeId);
-    setNodes((nds) => {
-      const filtered = nds.filter((node) => node.id !== nodeId);
-      console.log('Nodes before:', nds.length, 'Nodes after:', filtered.length);
-      return filtered;
-    });
-    setEdges((eds) => {
-      const filtered = eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId);
-      console.log('Edges before:', eds.length, 'Edges after:', filtered.length);
-      return filtered;
-    });
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
   }, [setNodes, setEdges]);
 
   const nodeTypes = {
@@ -274,10 +265,20 @@ function App() {
   });
   const [previewEdge, setPreviewEdge] = useState(null);
 
+  // Get songs that are currently on the canvas
+  const songsOnCanvas = useMemo(() => {
+    return nodes.map(node => node.data.song.id);
+  }, [nodes]);
+
+  // Filter out songs that are already on the canvas
+  const availableSongs = useMemo(() => {
+    return initialSongs.filter(song => !songsOnCanvas.includes(song.id));
+  }, [songsOnCanvas]);
+
   return (
     <AppContainer>
       <LeftPanel>
-        <Sidebar songs={initialSongs} />
+        <Sidebar songs={availableSongs} />
       </LeftPanel>
       <RightPanel>
         <ReactFlowProvider>
