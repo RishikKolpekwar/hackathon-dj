@@ -1,10 +1,6 @@
 export const songs = [
-    { id: '1', title: 'Bohemian Rhapsody', artist: 'Queen', duration: '5:55', albumCover: '/Ken_Carson_Project_X_cover.jpeg' },
-    { id: '2', title: 'Stairway to Heaven', artist: 'Led Zeppelin', duration: '8:02', albumCover: '/Ken_Carson_Project_X_cover.jpeg' },
-    { id: '3', title: 'Hotel California', artist: 'Eagles', duration: '6:30', albumCover: '/Ken_Carson_Project_X_cover.jpeg' },
-    { id: '4', title: 'Sweet Child O\' Mine', artist: 'Guns N\' Roses', duration: '5:03', albumCover: '/Ken_Carson_Project_X_cover.jpeg' },
-    { id: '5', title: 'Imagine', artist: 'John Lennon', duration: '3:03', albumCover: '/Ken_Carson_Project_X_cover.jpeg' },
-    { id: '6', title: 'Billie Jean', artist: 'Michael Jackson', duration: '4:54', albumCover: '/Ken_Carson_Project_X_cover.jpeg' },
-    { id: '7', title: 'Smells Like Teen Spirit', artist: 'Nirvana', duration: '5:01', albumCover: '/Ken_Carson_Project_X_cover.jpeg' },
-    { id: '8', title: 'Hey Jude', artist: 'The Beatles', duration: '7:11', albumCover: '/Ken_Carson_Project_X_cover.jpeg' },
+    { id: '4', title: 'Starships', artist: 'Nicki Minaj', duration: '3:30', albumCover: '/song-covers/placeholder.jpg', filename: 'Starships.mp3' },
+    { id: '7', title: 'One More Time', artist: 'Daft Punk', duration: '5:20', albumCover: '/song-covers/placeholder.jpg', filename: 'One More Time.mp3' },
+    { id: '12', title: 'Just Dance', artist: 'Lady Gaga', duration: '4:01', albumCover: '/song-covers/placeholder.jpg', filename: 'Just Dance.mp3' },
+    { id: '17', title: 'Dynamite', artist: 'Taio Cruz', duration: '3:22', albumCover: '/song-covers/placeholder.jpg', filename: 'Dynamite.mp3' },
 ];
