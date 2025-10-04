@@ -6,7 +6,7 @@ const PlayerContainer = styled.div`
   bottom: 0;
   left: 0;
   right: 0;
-  height: 120px;
+  height: 130px;
   background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
   border-top: 2px solid #e92a67;
   z-index: 1000;
@@ -93,14 +93,14 @@ const Timeline = styled.div`
 const SongClip = styled.div`
   position: relative;
   height: 100%;
-  background: ${props => props.isPlaying
+  background: ${props => props.isPlaying 
     ? 'linear-gradient(135deg, rgba(233, 42, 103, 0.3), rgba(168, 83, 186, 0.3))'
     : 'rgba(255, 255, 255, 0.05)'};
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   border-left: ${props => props.isPlaying ? '2px solid #e92a67' : 'none'};
   display: flex;
   align-items: center;
-  padding: 8px;
+  padding: 12px 8px;
   gap: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -108,9 +108,9 @@ const SongClip = styled.div`
   min-width: 250px;
   
   &:hover {
-    background: ${props => props.isPlaying
-    ? 'linear-gradient(135deg, rgba(233, 42, 103, 0.4), rgba(168, 83, 186, 0.4))'
-    : 'rgba(255, 255, 255, 0.1)'};
+    background: ${props => props.isPlaying 
+      ? 'linear-gradient(135deg, rgba(233, 42, 103, 0.4), rgba(168, 83, 186, 0.4))'
+      : 'rgba(255, 255, 255, 0.1)'};
   }
 `;
 
@@ -502,9 +502,9 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
                     />
                   )}
                 </React.Fragment>
-                            ))}
-                            {currentSong && !isPlayingTransition && <Playhead position={calculatePlayheadPosition()} />}
-                        </Timeline>
+              ))}
+              {currentSong && !isPlayingTransition && <Playhead position={calculatePlayheadPosition()} />}
+            </Timeline>
           )}
         </TimelineContainer>
       </PlayerContainer>

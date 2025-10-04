@@ -19,7 +19,7 @@ import { songs as initialSongs } from './data/songs';
 
 const AppContainer = styled.div`
   display: flex;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 130px);
   background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #2d2d2d 100%);
 `;
 
