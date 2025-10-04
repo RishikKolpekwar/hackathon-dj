@@ -180,7 +180,7 @@ const ConnectionPopup = ({
     // Calculate position below the node, perfectly centered horizontally
     const drawerWidth = 250;
     const nodeCenterX = nodeRect.left + (nodeRect.width / 2);
-    const drawerCenterX = (drawerWidth * viewport.zoom) / 2;
+    const drawerCenterX = drawerWidth / 2;
     const x = nodeCenterX - reactFlowRect.left - drawerCenterX;
     const y = nodeRect.bottom - reactFlowRect.top + (20 * viewport.zoom);
 
