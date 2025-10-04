@@ -1,10 +1,10 @@
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 
-export default memo(({ data }) => {
+export default memo(({ data, selected }) => {
     return (
         <>
-            <div className="cloud gradient">
+            <div className={`cloud gradient ${selected ? 'selected' : ''}`}>
                 <div>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
@@ -12,7 +12,7 @@ export default memo(({ data }) => {
                     </svg>
                 </div>
             </div>
-            <div className="wrapper gradient">
+            <div className={`wrapper gradient ${selected ? 'selected' : ''}`}>
                 <div className="inner">
                     <div className="body">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
