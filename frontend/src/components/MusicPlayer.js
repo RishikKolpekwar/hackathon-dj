@@ -88,6 +88,7 @@ const Timeline = styled.div`
   min-width: 100%;
   position: relative;
   cursor: pointer;
+  align-items: center;
 `;
 
 const SongClip = styled.div`

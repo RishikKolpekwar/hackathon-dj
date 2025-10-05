@@ -30,6 +30,14 @@ const LeftPanel = styled.div`
   overflow-y: auto;
   position: relative;
 
+  /* Hide scrollbar */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* For Firefox */
+  scrollbar-width: none;
+
   &::after {
     content: '';
     position: absolute;
