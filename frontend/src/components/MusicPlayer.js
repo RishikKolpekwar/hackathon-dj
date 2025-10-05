@@ -252,6 +252,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [effectiveDuration, setEffectiveDuration] = useState(0); // NEW: The actual playable duration
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlayingTransition, setIsPlayingTransition] = useState(false);
   const [nextSongStartTime, setNextSongStartTime] = useState(0);
@@ -259,6 +260,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
   const timelineRef = useRef(null);
   const clipRefs = useRef([]);
   const transitionScheduledRef = useRef(false);
+  const currentQueueItemRef = useRef(null); // NEW: Track current queue item for transitions
 
   // Helper function to parse timestamp strings like "1:41" into seconds
   const parseTimestamp = useCallback((timestamp) => {
@@ -293,7 +295,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
             const endTime = parseTimestamp(transition.endTimethisSong);
 
             // Trigger transition when we reach or pass the endTimethisSong time
-            if (audio.currentTime >= endTime && audio.currentTime < endTime + 0.5) {
+            if (audio.currentTime >= endTime - 0.1) { // Trigger slightly before to ensure clean cut
               transitionScheduledRef.current = true;
 
               // Stop current song and play transition
@@ -319,7 +321,21 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
     };
 
     const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
+      const fullDuration = audio.duration;
+      setDuration(fullDuration);
+
+      // Calculate effective duration based on transition
+      if (!isPlayingTransition) {
+        const currentQueueItem = songQueue[currentSongIndex];
+        if (currentQueueItem?.hasTransition && currentQueueItem.transition?.endTimethisSong) {
+          const endTime = parseTimestamp(currentQueueItem.transition.endTimethisSong);
+          setEffectiveDuration(endTime);
+        } else {
+          setEffectiveDuration(fullDuration);
+        }
+      } else {
+        setEffectiveDuration(fullDuration);
+      }
     };
 
     const handleEnded = () => {
@@ -404,12 +420,26 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('ended', handleEnded);
 
+    // Update current queue item ref for mid-play changes
+    currentQueueItemRef.current = songQueue[currentSongIndex];
+
+    // Recalculate effective duration if transition changes mid-play
+    if (!isPlayingTransition && duration > 0) {
+      const currentQueueItem = songQueue[currentSongIndex];
+      if (currentQueueItem?.hasTransition && currentQueueItem.transition?.endTimethisSong) {
+        const endTime = parseTimestamp(currentQueueItem.transition.endTimethisSong);
+        setEffectiveDuration(endTime);
+      } else {
+        setEffectiveDuration(duration);
+      }
+    }
+
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [currentSongIndex, songQueue, setCurrentSong, isPlayingTransition, setTransitioningEdgeId, parseTimestamp, setNextSongStartTime]);
+  }, [currentSongIndex, songQueue, setCurrentSong, isPlayingTransition, setTransitioningEdgeId, parseTimestamp, duration, nextSongStartTime]);
 
   // Handle song changes
   useEffect(() => {
@@ -427,10 +457,18 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
       setTransitioningEdgeId(null);
       transitionScheduledRef.current = false;
 
-      // Find index in queue
+      // Find index in queue and set effective duration
       const index = songQueue.findIndex(item => item.song.id === currentSong.id);
       if (index !== -1) {
         setCurrentSongIndex(index);
+
+        // Pre-calculate effective duration for this song
+        const queueItem = songQueue[index];
+        if (queueItem?.hasTransition && queueItem.transition?.endTimethisSong) {
+          const endTime = parseTimestamp(queueItem.transition.endTimethisSong);
+          // Will be set properly when metadata loads, but set a preview value
+          setEffectiveDuration(endTime);
+        }
       }
     } else {
       audio.pause();
@@ -438,11 +476,12 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
       setIsPlaying(false);
       setCurrentTime(0);
       setDuration(0);
+      setEffectiveDuration(0);
       setIsPlayingTransition(false);
       setTransitioningEdgeId(null);
       transitionScheduledRef.current = false;
     }
-  }, [currentSong, songQueue, setTransitioningEdgeId]);
+  }, [currentSong, songQueue, setTransitioningEdgeId, parseTimestamp]);
 
   const togglePlayPause = () => {
     const audio = audioRef.current;
@@ -491,9 +530,10 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
       }
     }
 
-    // Add progress within current clip
+    // Add progress within current clip - use effectiveDuration for proper visualization
     const currentClipWidth = clipRefs.current[currentSongIndex]?.offsetWidth || 250;
-    const progressInCurrentClip = duration > 0 ? (currentTime / duration) * currentClipWidth : 0;
+    const durationToUse = effectiveDuration > 0 ? effectiveDuration : duration;
+    const progressInCurrentClip = durationToUse > 0 ? (currentTime / durationToUse) * currentClipWidth : 0;
 
     return cumulativeWidth + progressInCurrentClip;
   };
@@ -524,11 +564,15 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
           setCurrentSong(songQueue[i].song);
           setCurrentSongIndex(i);
           // The time will be set when the song loads via useEffect
-        } else if (duration > 0) {
-          // Same song - just seek
-          const newTime = percentage * duration;
-          audio.currentTime = newTime;
-          setCurrentTime(newTime);
+        } else {
+          // Same song - just seek, using effective duration
+          const durationToUse = effectiveDuration > 0 ? effectiveDuration : duration;
+          if (durationToUse > 0) {
+            const newTime = percentage * durationToUse;
+            // Don't allow seeking beyond effective duration
+            audio.currentTime = Math.min(newTime, durationToUse);
+            setCurrentTime(audio.currentTime);
+          }
         }
 
         return;
@@ -552,7 +596,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
             {isPlaying ? '⏸' : '▶'}
           </PlayButton>
           <CurrentTimeDisplay>
-            {currentSong ? `${formatTime(currentTime)} / ${formatTime(duration)}` : '--:-- / --:--'}
+            {currentSong ? `${formatTime(currentTime)} / ${formatTime(effectiveDuration > 0 ? effectiveDuration : duration)}` : '--:-- / --:--'}
           </CurrentTimeDisplay>
           {currentSong && (
             <div style={{ color: '#ffffff', fontSize: '13px', fontWeight: '600' }}>

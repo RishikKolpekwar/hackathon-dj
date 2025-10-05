@@ -11,7 +11,7 @@ export const songs = [
                     Name: 'Fire Wordplay',
                     Songs: 'Just Dance x Dynamite',
                     endTimethisSong: '1:41',
-                    startTimeOtherSong: '1:00',
+                    startTimeOtherSong: '0:14',
                     audioFile: require('./songs/just dance to dynamite.mp3'),
                 },
                 {
@@ -36,8 +36,8 @@ export const songs = [
                     TransitionTo: '4',
                     Name: 'Clean lows switch',
                     Songs: 'Dynamite x Starships',
-                    endTimethisSong: '1:07',
-                    startTimeOtherSong: '1:00',
+                    endTimethisSong: '1:22',
+                    startTimeOtherSong: '2:02',
                     audioFile: require('./songs/dynamite to starships.MP3'),
                 },
                 {
@@ -61,8 +61,8 @@ export const songs = [
                     TransitionTo: '7',
                     Name: 'ONEEEE MORE TIME WORDPLAY',
                     Songs: 'Starships x One More Time',
-                    endTimethisSong: '1:59',
-                    startTimeOtherSong: '1:00',
+                    endTimethisSong: '2:48',
+                    startTimeOtherSong: '0:10',
                     audioFile: require('./songs/starships to one more time.mp3'),
                 },
                 {
