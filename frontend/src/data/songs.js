@@ -92,6 +92,68 @@ export const songs = [
                 }
             ]
     },
+
+    {
+        id: '10', title: 'Shape of You', artist: 'Ed Sheeran', duration: '3:53',
+        transitions:
+            [
+                {
+                    defaultTransition: true,
+                    TransitionTo: 'ANY',
+                    Name: 'Default Transition',
+                    Songs: 'Shape of You x ANY',
+                    endTimethisSong: '3:53',
+                    startTimeOtherSong: '0:00',
+                    audioFile: require('./songs/default-transition.mp3'),
+                }
+            ]
+    },
+    {
+        id: '11', title: 'Nokia', artist: 'Drake', duration: '3:53',
+        transitions:
+            [
+                {
+                    defaultTransition: true,
+                    TransitionTo: 'ANY',
+                    Name: 'Default Transition',
+                    Songs: 'Shape of You x ANY',
+                    endTimethisSong: '3:53',
+                    startTimeOtherSong: '0:00',
+                    audioFile: require('./songs/default-transition.mp3'),
+                }
+            ]
+    },
+    {
+        id: '99', title: 'Party Rock Anthem', artist: 'LMFAO', duration: '3:53',
+        transitions:
+            [
+                {
+                    defaultTransition: true,
+                    TransitionTo: 'ANY',
+                    Name: 'Default Transition',
+                    Songs: 'Shape of You x ANY',
+                    endTimethisSong: '3:53',
+                    startTimeOtherSong: '0:00',
+                    audioFile: require('./songs/default-transition.mp3'),
+                }
+            ]
+    },
+
+    {
+        id: '101', title: 'Last Friday Night', artist: 'Katy Perry', duration: '3:53',
+        transitions:
+            [
+                {
+                    defaultTransition: true,
+                    TransitionTo: 'ANY',
+                    Name: 'Default Transition',
+                    Songs: 'Shape of You x ANY',
+                    endTimethisSong: '3:53',
+                    startTimeOtherSong: '0:00',
+                    audioFile: require('./songs/default-transition.mp3'),
+                }
+            ]
+    },
 ];
 
 

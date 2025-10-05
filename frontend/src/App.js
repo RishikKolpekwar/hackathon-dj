@@ -16,11 +16,76 @@ import TurboEdge from './components/TurboEdge.js';
 import ConnectionPopup from './components/ConnectionPopup.js';
 import TransitionPopup from './components/TransitionPopup.js';
 import MusicPlayer from './components/MusicPlayer';
+import UploadForm from './components/UploadForm';
 import { songs as initialSongs } from './data/songs';
+
+const MainContainer = styled.div`
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+`;
+
+const TabBar = styled.div`
+  display: flex;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border-bottom: 2px solid transparent;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      #e92a67 0%,
+      #a853ba 33%,
+      #2a8af6 66%,
+      #e92a67 100%
+    );
+  }
+`;
+
+const Tab = styled.button`
+  padding: 20px 40px;
+  background: ${props => props.active ?
+    'linear-gradient(135deg, rgba(233, 42, 103, 0.2) 0%, rgba(42, 138, 246, 0.2) 100%)' :
+    'transparent'};
+  border: none;
+  color: ${props => props.active ? '#f3f4f6' : '#999'};
+  font-family: 'Fira Mono', monospace;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  letter-spacing: -0.3px;
+  
+  &:hover {
+    color: #f3f4f6;
+    background: linear-gradient(135deg, rgba(233, 42, 103, 0.1) 0%, rgba(42, 138, 246, 0.1) 100%);
+  }
+  
+  ${props => props.active && `
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -2px;
+      height: 2px;
+      background: linear-gradient(to right, #e92a67 0%, #2a8af6 100%);
+      z-index: 1;
+    }
+  `}
+`;
 
 const AppContainer = styled.div`
   display: flex;
-  height: calc(100vh - 130px);
+  height: calc(100vh - 64px);
   background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #2d2d2d 100%);
 `;
 
@@ -349,6 +414,7 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
 }
 
 function App() {
+  const [activeTab, setActiveTab] = useState('dj'); // 'dj' or 'upload'
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [popupState, setPopupState] = useState({
@@ -426,44 +492,65 @@ function App() {
   }, [songsOnCanvas]);
 
   return (
-    <>
-      <AppContainer>
-        <LeftPanel>
-          <Sidebar songs={availableSongs} />
-        </LeftPanel>
-        <RightPanel>
-          <ReactFlowProvider>
-            <FlowContent
-              nodes={nodes}
-              edges={edges}
-              setNodes={setNodes}
-              setEdges={setEdges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              popupState={popupState}
-              setPopupState={setPopupState}
-              previewEdge={previewEdge}
-              setPreviewEdge={setPreviewEdge}
-              setCurrentSong={setCurrentSong}
-              currentSong={currentSong}
-              transitioningEdgeId={transitioningEdgeId}
-              edgeTransitions={edgeTransitions}
-              setEdgeTransitions={setEdgeTransitions}
-              transitionPopupState={transitionPopupState}
-              setTransitionPopupState={setTransitionPopupState}
-            />
-          </ReactFlowProvider>
-        </RightPanel>
-      </AppContainer>
-      <MusicPlayer
-        songQueue={songQueue}
-        currentSong={currentSong}
-        setCurrentSong={setCurrentSong}
-        nodes={nodes}
-        edges={edges}
-        setTransitioningEdgeId={setTransitioningEdgeId}
-      />
-    </>
+    <MainContainer>
+      <TabBar>
+        <Tab
+          active={activeTab === 'dj'}
+          onClick={() => setActiveTab('dj')}
+        >
+          🎧 DJ Workflow
+        </Tab>
+        <Tab
+          active={activeTab === 'upload'}
+          onClick={() => setActiveTab('upload')}
+        >
+          💰 Upload & Earn
+        </Tab>
+      </TabBar>
+
+      {activeTab === 'dj' ? (
+        <>
+          <AppContainer>
+            <LeftPanel>
+              <Sidebar songs={availableSongs} />
+            </LeftPanel>
+            <RightPanel>
+              <ReactFlowProvider>
+                <FlowContent
+                  nodes={nodes}
+                  edges={edges}
+                  setNodes={setNodes}
+                  setEdges={setEdges}
+                  onNodesChange={onNodesChange}
+                  onEdgesChange={onEdgesChange}
+                  popupState={popupState}
+                  setPopupState={setPopupState}
+                  previewEdge={previewEdge}
+                  setPreviewEdge={setPreviewEdge}
+                  setCurrentSong={setCurrentSong}
+                  currentSong={currentSong}
+                  transitioningEdgeId={transitioningEdgeId}
+                  edgeTransitions={edgeTransitions}
+                  setEdgeTransitions={setEdgeTransitions}
+                  transitionPopupState={transitionPopupState}
+                  setTransitionPopupState={setTransitionPopupState}
+                />
+              </ReactFlowProvider>
+            </RightPanel>
+          </AppContainer>
+          <MusicPlayer
+            songQueue={songQueue}
+            currentSong={currentSong}
+            setCurrentSong={setCurrentSong}
+            nodes={nodes}
+            edges={edges}
+            setTransitioningEdgeId={setTransitioningEdgeId}
+          />
+        </>
+      ) : (
+        <UploadForm />
+      )}
+    </MainContainer>
   );
 }
 
