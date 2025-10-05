@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 
 const PlayerContainer = styled.div`
@@ -254,9 +254,21 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
   const [duration, setDuration] = useState(0);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlayingTransition, setIsPlayingTransition] = useState(false);
+  const [nextSongStartTime, setNextSongStartTime] = useState(0);
   const audioRef = useRef(null);
   const timelineRef = useRef(null);
   const clipRefs = useRef([]);
+  const transitionScheduledRef = useRef(false);
+
+  // Helper function to parse timestamp strings like "1:41" into seconds
+  const parseTimestamp = useCallback((timestamp) => {
+    if (!timestamp) return 0;
+    const parts = timestamp.split(':');
+    if (parts.length === 2) {
+      return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    }
+    return 0;
+  }, []);
 
   // Initialize audio element
   useEffect(() => {
@@ -269,6 +281,41 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
 
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
+
+      // Check if we need to trigger a transition based on endTimethisSong
+      if (!isPlayingTransition && !transitionScheduledRef.current) {
+        const currentQueueItem = songQueue[currentSongIndex];
+        if (currentQueueItem?.hasTransition && currentQueueItem.transition) {
+          const transition = currentQueueItem.transition;
+
+          // Check if the transition has endTimethisSong specified
+          if (transition.endTimethisSong) {
+            const endTime = parseTimestamp(transition.endTimethisSong);
+
+            // Trigger transition when we reach or pass the endTimethisSong time
+            if (audio.currentTime >= endTime && audio.currentTime < endTime + 0.5) {
+              transitionScheduledRef.current = true;
+
+              // Stop current song and play transition
+              audio.pause();
+              setIsPlayingTransition(true);
+              setTransitioningEdgeId(currentQueueItem.edgeToNext);
+
+              // Store the start time for the next song
+              if (transition.startTimeOtherSong) {
+                setNextSongStartTime(parseTimestamp(transition.startTimeOtherSong));
+              } else {
+                setNextSongStartTime(0);
+              }
+
+              // Play the transition audio
+              audio.src = transition.audioFile;
+              audio.load();
+              audio.play().catch(err => console.error('Error playing transition:', err));
+            }
+          }
+        }
+      }
     };
 
     const handleLoadedMetadata = () => {
@@ -280,25 +327,64 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
         // Transition just ended, play next song
         setIsPlayingTransition(false);
         setTransitioningEdgeId(null);
+        transitionScheduledRef.current = false;
+
         const nextIndex = currentSongIndex + 1;
         if (nextIndex < songQueue.length) {
           setCurrentSongIndex(nextIndex);
-          setCurrentSong(songQueue[nextIndex].song);
+          const nextSong = songQueue[nextIndex].song;
+          setCurrentSong(nextSong);
+
+          // Load the next song and start at the specified time
+          audio.src = nextSong.audioFile;
+          audio.load();
+
+          // Set the start time after the audio is loaded
+          const startAudio = () => {
+            audio.currentTime = nextSongStartTime;
+            audio.play().catch(err => console.error('Error playing next song:', err));
+            audio.removeEventListener('loadedmetadata', startAudio);
+          };
+
+          audio.addEventListener('loadedmetadata', startAudio);
         } else {
           setIsPlaying(false);
           setCurrentTime(0);
           setCurrentSongIndex(0);
         }
       } else {
-        // Song just ended, check if there's a transition
+        // Song just ended naturally, check if there's a transition
         const currentQueueItem = songQueue[currentSongIndex];
-        if (currentQueueItem?.hasTransition && currentQueueItem.transitionFile) {
-          // Play transition
-          setIsPlayingTransition(true);
-          setTransitioningEdgeId(currentQueueItem.edgeToNext);
-          audio.src = currentQueueItem.transitionFile;
-          audio.load();
-          audio.play().catch(err => console.error('Error playing transition:', err));
+        if (currentQueueItem?.hasTransition && currentQueueItem.transition) {
+          const transition = currentQueueItem.transition;
+
+          // Only trigger if transition doesn't have endTimethisSong (meaning it should play at end)
+          if (!transition.endTimethisSong && transition.audioFile) {
+            setIsPlayingTransition(true);
+            setTransitioningEdgeId(currentQueueItem.edgeToNext);
+
+            // Store the start time for the next song
+            if (transition.startTimeOtherSong) {
+              setNextSongStartTime(parseTimestamp(transition.startTimeOtherSong));
+            } else {
+              setNextSongStartTime(0);
+            }
+
+            audio.src = transition.audioFile;
+            audio.load();
+            audio.play().catch(err => console.error('Error playing transition:', err));
+          } else {
+            // No end-of-song transition, just advance to next song
+            const nextIndex = currentSongIndex + 1;
+            if (nextIndex < songQueue.length) {
+              setCurrentSongIndex(nextIndex);
+              setCurrentSong(songQueue[nextIndex].song);
+            } else {
+              setIsPlaying(false);
+              setCurrentTime(0);
+              setCurrentSongIndex(0);
+            }
+          }
         } else {
           // No transition, just advance to next song
           const nextIndex = currentSongIndex + 1;
@@ -323,7 +409,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [currentSongIndex, songQueue, setCurrentSong, isPlayingTransition, setTransitioningEdgeId]);
+  }, [currentSongIndex, songQueue, setCurrentSong, isPlayingTransition, setTransitioningEdgeId, parseTimestamp, setNextSongStartTime]);
 
   // Handle song changes
   useEffect(() => {
@@ -339,6 +425,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
       setIsPlaying(true);
       setIsPlayingTransition(false);
       setTransitioningEdgeId(null);
+      transitionScheduledRef.current = false;
 
       // Find index in queue
       const index = songQueue.findIndex(item => item.song.id === currentSong.id);
@@ -353,6 +440,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
       setDuration(0);
       setIsPlayingTransition(false);
       setTransitioningEdgeId(null);
+      transitionScheduledRef.current = false;
     }
   }, [currentSong, songQueue, setTransitioningEdgeId]);
 
