@@ -325,12 +325,19 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
     };
   }, [currentSongIndex, songQueue, setCurrentSong, isPlayingTransition, setTransitioningEdgeId]);
 
+  // Track the previous song ID to detect actual song changes
+  const prevSongIdRef = useRef(null);
+
   // Handle song changes
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (currentSong) {
+    const currentSongId = currentSong?.id;
+    const songActuallyChanged = currentSongId !== prevSongIdRef.current;
+
+    if (currentSong && songActuallyChanged) {
+      // Only reload audio when the song actually changes
       audio.src = currentSong.audioFile;
       audio.load();
 
@@ -340,12 +347,16 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
       setIsPlayingTransition(false);
       setTransitioningEdgeId(null);
 
+      // Update the previous song ID
+      prevSongIdRef.current = currentSongId;
+
       // Find index in queue
       const index = songQueue.findIndex(item => item.song.id === currentSong.id);
       if (index !== -1) {
         setCurrentSongIndex(index);
       }
-    } else {
+    } else if (!currentSong && prevSongIdRef.current !== null) {
+      // Only reset when going from a song to no song
       audio.pause();
       audio.src = '';
       setIsPlaying(false);
@@ -353,6 +364,7 @@ const MusicPlayer = ({ songQueue, currentSong, setCurrentSong, nodes, edges, set
       setDuration(0);
       setIsPlayingTransition(false);
       setTransitioningEdgeId(null);
+      prevSongIdRef.current = null;
     }
   }, [currentSong, songQueue, setTransitioningEdgeId]);
 

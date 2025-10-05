@@ -228,6 +228,7 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
         nodesConnectable={false}
         edgesUpdatable={false}
         connectOnClick={false}
+        panOnDrag={[2]}
         defaultViewport={{ x: 0, y: 0, zoom: 1.2 }}
         minZoom={0.8}
         maxZoom={2}
