@@ -14,6 +14,7 @@ import Sidebar from './components/Sidebar';
 import TurboNode from './components/TurboNode.js';
 import TurboEdge from './components/TurboEdge.js';
 import ConnectionPopup from './components/ConnectionPopup.js';
+import TransitionPopup from './components/TransitionPopup.js';
 import MusicPlayer from './components/MusicPlayer';
 import { songs as initialSongs } from './data/songs';
 
@@ -81,7 +82,7 @@ const initialNodes = [];
 const initialEdges = [];
 
 // Inner component that uses React Flow hooks
-function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, popupState, setPopupState, previewEdge, setPreviewEdge, setCurrentSong, currentSong, transitioningEdgeId }) {
+function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, popupState, setPopupState, previewEdge, setPreviewEdge, setCurrentSong, currentSong, transitioningEdgeId, edgeTransitions, setEdgeTransitions, transitionPopupState, setTransitionPopupState }) {
   const { screenToFlowPosition } = useReactFlow();
 
   const handleDeleteNode = useCallback((nodeId) => {
@@ -199,12 +200,49 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
     }
   }, [popupState.show, handleClosePopup]);
 
+  const handleEdgeClick = useCallback((edgeId) => {
+    const edge = edges.find(e => e.id === edgeId);
+    if (!edge) return;
+
+    const sourceNode = nodes.find(n => n.id === edge.source);
+    const targetNode = nodes.find(n => n.id === edge.target);
+
+    if (!sourceNode || !targetNode) return;
+
+    setTransitionPopupState({
+      show: true,
+      edge: edge,
+      sourceSong: sourceNode.data.song,
+      targetSong: targetNode.data.song,
+      selectedTransition: edgeTransitions[edgeId] || null
+    });
+  }, [edges, nodes, edgeTransitions, setTransitionPopupState]);
+
+  const handleCloseTransitionPopup = useCallback(() => {
+    setTransitionPopupState({
+      show: false,
+      edge: null,
+      sourceSong: null,
+      targetSong: null,
+      selectedTransition: null
+    });
+  }, [setTransitionPopupState]);
+
+  const handleSelectTransition = useCallback((edgeId, transition) => {
+    setEdgeTransitions(prev => ({
+      ...prev,
+      [edgeId]: transition
+    }));
+  }, [setEdgeTransitions]);
+
   // Combine regular edges with preview edge, and mark transitioning edge
   const allEdges = edges.map(edge => ({
     ...edge,
     data: {
       ...edge.data,
-      isTransitioning: edge.id === transitioningEdgeId
+      isTransitioning: edge.id === transitioningEdgeId,
+      selectedTransition: edgeTransitions[edge.id] || null,
+      onEdgeClick: handleEdgeClick
     }
   }));
   if (previewEdge) {
@@ -271,6 +309,17 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
           previewTarget={previewEdge?.target}
         />
       )}
+
+      {transitionPopupState.show && transitionPopupState.edge && (
+        <TransitionPopup
+          edge={transitionPopupState.edge}
+          sourceSong={transitionPopupState.sourceSong}
+          targetSong={transitionPopupState.targetSong}
+          selectedTransition={transitionPopupState.selectedTransition}
+          onSelectTransition={handleSelectTransition}
+          onClose={handleCloseTransitionPopup}
+        />
+      )}
     </>
   );
 }
@@ -285,6 +334,14 @@ function App() {
   const [previewEdge, setPreviewEdge] = useState(null);
   const [currentSong, setCurrentSong] = useState(null);
   const [transitioningEdgeId, setTransitioningEdgeId] = useState(null);
+  const [edgeTransitions, setEdgeTransitions] = useState({});
+  const [transitionPopupState, setTransitionPopupState] = useState({
+    show: false,
+    edge: null,
+    sourceSong: null,
+    targetSong: null,
+    selectedTransition: null
+  });
 
   // Build song queue from connected nodes with transition info
   const songQueue = useMemo(() => {
@@ -309,12 +366,17 @@ function App() {
       if (node) {
         // Find the edge that connects this node to the next
         const nextEdge = edges.find(e => e.source === nodeId);
+        const nextNode = nextEdge ? nodes.find(n => n.id === nextEdge.target) : null;
+
+        // Get the selected transition for this edge
+        const selectedTransition = nextEdge ? edgeTransitions[nextEdge.id] : null;
 
         queue.push({
           song: node.data.song,
           edgeToNext: nextEdge ? nextEdge.id : null,
-          hasTransition: nextEdge && node.data.song.postTransition ? true : false,
-          transitionFile: node.data.song.postTransition || null
+          nextSong: nextNode ? nextNode.data.song : null,
+          hasTransition: selectedTransition ? true : false,
+          transition: selectedTransition || null
         });
 
         if (nextEdge) {
@@ -327,7 +389,7 @@ function App() {
     buildQueue(startNodes[0].id);
 
     return queue;
-  }, [nodes, edges]);
+  }, [nodes, edges, edgeTransitions]);
 
   // Get songs that are currently on the canvas
   const songsOnCanvas = useMemo(() => {
@@ -361,6 +423,10 @@ function App() {
               setCurrentSong={setCurrentSong}
               currentSong={currentSong}
               transitioningEdgeId={transitioningEdgeId}
+              edgeTransitions={edgeTransitions}
+              setEdgeTransitions={setEdgeTransitions}
+              transitionPopupState={transitionPopupState}
+              setTransitionPopupState={setTransitionPopupState}
             />
           </ReactFlowProvider>
         </RightPanel>
