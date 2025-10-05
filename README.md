@@ -3,11 +3,10 @@
 
 # djeet: Live DJ Mixing for Everyone 🎵
 
-
  - Pick your songs
  - Drag and drop them onto the canvas and connect them with transitions seamlessly
 
-**Built at 2025 TVG Vibeathon on October 5, 2025 in 5 hrs**
+**Built at 2025 TVG Vibeathon on October 5, 2025 in 5 hrs and won FIRST PLACE ($225)**
 ## Prizes won
 
 ## Demo Video
