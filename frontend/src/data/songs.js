@@ -15,6 +15,7 @@ export const songs = [
                     audioFile: require('./songs/just dance to dynamite.mp3'),
                 },
                 {
+                    defaultTransition: true,
                     TransitionTo: 'ANY',
                     Name: 'Default Transition',
                     Songs: 'Just Dance x ANY',
@@ -40,6 +41,7 @@ export const songs = [
                     audioFile: require('./songs/dynamite to starships.MP3'),
                 },
                 {
+                    defaultTransition: true,
                     TransitionTo: 'ANY',
                     Name: 'Default Transition',
                     Songs: 'Dynamite x ANY',
@@ -64,6 +66,7 @@ export const songs = [
                     audioFile: require('./songs/starships to one more time.mp3'),
                 },
                 {
+                    defaultTransition: true,
                     TransitionTo: 'ANY',
                     Name: 'Default Transition',
                     Songs: 'Starships x ANY',
@@ -79,6 +82,7 @@ export const songs = [
         transitions:
             [
                 {
+                    defaultTransition: true,
                     TransitionTo: 'ANY',
                     Name: 'Default Transition',
                     Songs: 'One More Time x ANY',

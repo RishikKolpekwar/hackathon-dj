@@ -178,8 +178,9 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
     // Remove any existing outgoing from source
     const finalEdges = updatedEdges.filter((e) => e.source !== sourceNode.id);
 
+    const newEdgeId = `edge-${sourceNode.id}-${targetNode.id}-${Date.now()}`;
     const newEdge = {
-      id: `edge-${sourceNode.id}-${targetNode.id}-${Date.now()}`,
+      id: newEdgeId,
       source: sourceNode.id,
       target: targetNode.id,
       sourceHandle: 'output',
@@ -190,7 +191,30 @@ function FlowContent({ nodes, edges, setNodes, setEdges, onNodesChange, onEdgesC
 
     setEdges((eds) => [...finalEdges, newEdge]);
     setPreviewEdge(null);
-  }, [edges, setEdges, setPreviewEdge]);
+
+    // Auto-select default transition
+    const sourceSong = sourceNode.data.song;
+    const targetSong = targetNode.data.song;
+
+    if (sourceSong && sourceSong.transitions) {
+      // Find a default transition or any matching transition
+      const defaultTransition = sourceSong.transitions.find(t =>
+        t.Name === 'Default Transition' && (t.TransitionTo === targetSong.id || t.TransitionTo === 'ANY')
+      );
+
+      // If no default, try to find any matching transition
+      const anyTransition = defaultTransition || sourceSong.transitions.find(t =>
+        t.TransitionTo === targetSong.id || t.TransitionTo === 'ANY'
+      );
+
+      if (anyTransition) {
+        setEdgeTransitions(prev => ({
+          ...prev,
+          [newEdgeId]: anyTransition
+        }));
+      }
+    }
+  }, [edges, setEdges, setPreviewEdge, setEdgeTransitions]);
 
 
   const handlePaneClick = useCallback((event) => {

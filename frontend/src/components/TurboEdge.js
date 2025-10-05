@@ -45,8 +45,8 @@ export default function TurboEdge({
                 markerEnd={markerEnd}
                 style={{
                     ...style,
-                    stroke: hasTransitionSelected ? '#e92a67' : 'url(#edge-gradient)',
-                    strokeWidth: hasTransitionSelected ? 3 : 2,
+                    stroke: 'url(#edge-gradient)',
+                    strokeWidth: 2,
                     cursor: 'pointer',
                 }}
                 className={`react-flow__edge-path ${isTransitioning ? 'transition-playing' : ''}`}
@@ -66,7 +66,9 @@ export default function TurboEdge({
                         style={{
                             position: 'absolute',
                             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-                            background: 'rgba(233, 42, 103, 0.9)',
+                            background: data.selectedTransition.Name === 'Default Transition'
+                                ? 'rgba(168, 83, 186, 0.8)'
+                                : 'rgba(233, 42, 103, 0.9)',
                             color: 'white',
                             padding: '4px 8px',
                             borderRadius: '4px',
@@ -74,12 +76,16 @@ export default function TurboEdge({
                             fontWeight: '600',
                             pointerEvents: 'all',
                             cursor: 'pointer',
-                            boxShadow: '0 2px 8px rgba(233, 42, 103, 0.4)',
+                            boxShadow: data.selectedTransition.Name === 'Default Transition'
+                                ? '0 2px 8px rgba(168, 83, 186, 0.4)'
+                                : '0 2px 8px rgba(233, 42, 103, 0.4)',
                             whiteSpace: 'nowrap',
                         }}
                         onClick={handleClick}
                     >
-                        ⚡ {data.selectedTransition.Name}
+                        {data.selectedTransition.Name === 'Default Transition'
+                            ? '🎵 Default'
+                            : `⚡ ${data.selectedTransition.Name}`}
                     </div>
                 )}
             </EdgeLabelRenderer>
